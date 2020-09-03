@@ -1,5 +1,5 @@
 export const Images = {
   BANNER: require('./images/banner.png'),
-  MORE: require('./images/tab-more.png'),
-  QUEUE: require('./images/tab-queue.png')
+  MORE: require('./images/tab-icons/tab-more.png'),
+  QUEUE: require('./images/tab-icons/tab-queue.png')
 }
