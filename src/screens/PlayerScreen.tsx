@@ -31,7 +31,7 @@ import {
 } from '../components'
 import { downloadEpisode } from '../lib/downloader'
 import { translate } from '../lib/i18n'
-import { alertIfNoNetworkConnection } from '../lib/network'
+import { alertIfNoNetworkConnection, hasValidNetworkConnection } from '../lib/network'
 import {
   decodeHTMLString,
   formatTitleViewHtml,
@@ -45,7 +45,7 @@ import { PV } from '../resources'
 import { getEpisodes } from '../services/episode'
 import { gaTrackPageView } from '../services/googleAnalytics'
 import { getMediaRef, getMediaRefs } from '../services/mediaRef'
-import { getAddByRSSPodcast } from '../services/parser'
+import { getAddByRSSPodcastLocally } from '../services/parser'
 import { getNowPlayingItem, PVTrackPlayer } from '../services/player'
 import PlayerEventEmitter from '../services/playerEventEmitter'
 import { addQueueItemNext } from '../services/queue'
@@ -441,15 +441,15 @@ export class PlayerScreen extends React.Component<Props, State> {
     let title = ''
     if (podcastId) {
       url = PV.URLs.podcast + podcastId
-      title = `${nowPlayingItem.podcastTitle}${translate(' – shared using Podverse')}`
+      title = `${nowPlayingItem.podcastTitle}${translate('shared using Podverse')}`
     } else if (episodeId) {
       url = PV.URLs.episode + episodeId
-      title = `${nowPlayingItem.podcastTitle} – ${nowPlayingItem.episodeTitle} ${translate(' – shared using Podverse')}`
+      title = `${nowPlayingItem.podcastTitle} – ${nowPlayingItem.episodeTitle} ${translate('shared using Podverse')}`
     } else {
       url = PV.URLs.clip + mediaRefId
       title = `${nowPlayingItem.clipTitle ? nowPlayingItem.clipTitle + ' – ' : translate('untitled clip – ')}`
       title += `${nowPlayingItem.podcastTitle} – ${nowPlayingItem.episodeTitle} ${translate(
-        '– clip shared using Podverse'
+        'clip shared using Podverse'
       )}`
     }
 
@@ -533,7 +533,7 @@ export class PlayerScreen extends React.Component<Props, State> {
 
   render() {
     const { navigation } = this.props
-    const { fontScaleMode, player, screenPlayer } = this.global
+    const { fontScaleMode, offlineModeEnabled, player, screenPlayer } = this.global
     const { episode, nowPlayingItem } = player
     const {
       flatListData,
@@ -545,9 +545,10 @@ export class PlayerScreen extends React.Component<Props, State> {
       queryFrom,
       querySort,
       selectedItem,
-      showMoreActionSheet,
-      showShareActionSheet,
       showFullClipInfo,
+      showMoreActionSheet,
+      showNoInternetConnectionMessage,
+      showShareActionSheet,
       viewType
     } = screenPlayer
     let { mediaRef } = player
@@ -561,6 +562,12 @@ export class PlayerScreen extends React.Component<Props, State> {
     const mediaRefId = mediaRef ? mediaRef.id : null
 
     episode.description = replaceLinebreaksWithBrTags(episode.description)
+
+    const noResultsMessage =
+      viewType === PV.Filters._clipsKey ? translate('No clips found') : translate('No episodes found')
+
+    const showOfflineMessage =
+      offlineModeEnabled && queryFrom !== PV.Filters._showNotesKey && queryFrom !== PV.Filters._titleKey
 
     return (
       <OpaqueBackground nowPlayingItem={nowPlayingItem}>
@@ -625,8 +632,10 @@ export class PlayerScreen extends React.Component<Props, State> {
                     isLoadingMore={isLoadingMore}
                     ItemSeparatorComponent={this._ItemSeparatorComponent}
                     keyExtractor={(item: any) => item.id}
+                    noResultsMessage={noResultsMessage}
                     onEndReached={this._onEndReached}
                     renderItem={this._renderItem}
+                    showNoInternetConnectionMessage={showOfflineMessage || showNoInternetConnectionMessage}
                     transparent={true}
                   />
                 )}
@@ -701,7 +710,7 @@ export class PlayerScreen extends React.Component<Props, State> {
     const { queryPage, querySort } = screenPlayer
 
     if (nowPlayingItem && nowPlayingItem.addByRSSPodcastFeedUrl) {
-      const parsedPodcast = await getAddByRSSPodcast(nowPlayingItem.addByRSSPodcastFeedUrl)
+      const parsedPodcast = await getAddByRSSPodcastLocally(nowPlayingItem.addByRSSPodcastFeedUrl)
       if (parsedPodcast) {
         const { episodes = [] } = parsedPodcast
         return [episodes, episodes.length]
@@ -737,11 +746,16 @@ export class PlayerScreen extends React.Component<Props, State> {
       hideRightItemWhileLoading: false,
       isLoading: false,
       isLoadingMore: false,
-      isQuerying: false
+      isQuerying: false,
+      showNoInternetConnectionMessage: false
     } as any
 
-    const wasAlerted = await alertIfNoNetworkConnection('load data')
-    if (wasAlerted) return newState
+    const hasInternetConnection = await hasValidNetworkConnection()
+
+    if (!hasInternetConnection) {
+      newState.showNoInternetConnectionMessage = true
+      return newState
+    }
 
     try {
       if (viewType === PV.Filters._episodesKey) {

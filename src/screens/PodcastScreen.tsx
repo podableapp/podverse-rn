@@ -3,7 +3,6 @@ import debounce from 'lodash/debounce'
 import { convertNowPlayingItemToEpisode, convertToNowPlayingItem } from 'podverse-shared'
 import { View as RNView } from 'react-native'
 import Dialog from 'react-native-dialog'
-import { NavigationEvents } from 'react-navigation'
 import { NavigationStackOptions } from 'react-navigation-stack'
 import React from 'reactn'
 import {
@@ -63,7 +62,6 @@ type State = {
   isLoading: boolean
   isLoadingMore: boolean
   isRefreshing: boolean
-  isSearchScreen?: boolean
   isSubscribing: boolean
   limitDownloadedEpisodes: boolean
   podcast?: any
@@ -91,7 +89,7 @@ export class PodcastScreen extends React.Component<Props, State> {
         <RNView style={core.row}>
           {!addByRSSPodcastFeedUrl && (
             <NavShareIcon
-              endingText={translate(' – shared using Podverse')}
+              endingText={translate('shared using Podverse')}
               podcastTitle={podcastTitle}
               url={PV.URLs.podcast + podcastId}
             />
@@ -143,8 +141,7 @@ export class PodcastScreen extends React.Component<Props, State> {
     this._handleSearchBarTextQuery = debounce(this._handleSearchBarTextQuery, PV.SearchBar.textInputDebounceTime)
   }
 
-  handleDidMount = async () => {
-    const { navigation } = this.props
+  async componentDidMount() {
     const { podcastId } = this.state
     let podcast = this.props.navigation.getParam('podcast')
     const addByRSSPodcastFeedUrl = this.props.navigation.getParam('addByRSSPodcastFeedUrl')
@@ -154,6 +151,8 @@ export class PodcastScreen extends React.Component<Props, State> {
     // use the podcast from local storage.
     if (addByRSSPodcastFeedUrl) {
       podcast = await getAddByRSSPodcastLocally(addByRSSPodcastFeedUrl)
+    } else if (!hasInternetConnection && podcastId) {
+      podcast = await getPodcast(podcastId)
     }
 
     this.setState(
@@ -352,9 +351,6 @@ export class PodcastScreen extends React.Component<Props, State> {
       podcast
     }
 
-    const isSearchScreen = this.props.navigation.getParam('isSearchScreen')
-    const screen = isSearchScreen ? PV.RouteNames.SearchEpisodeScreen : PV.RouteNames.EpisodeScreen
-
     if (viewType === PV.Filters._downloadedKey) {
       let description = removeHTMLFromString(item.description)
       description = decodeHTMLString(description)
@@ -362,12 +358,12 @@ export class PodcastScreen extends React.Component<Props, State> {
         <EpisodeTableCell
           description={description}
           handleMorePress={() => this._handleMorePress(convertToNowPlayingItem(item, null, podcast))}
-          handleNavigationPress={() =>
-            this.props.navigation.navigate(screen, {
+          handleNavigationPress={() => {
+            this.props.navigation.navigate(PV.RouteNames.EpisodeScreen, {
               episode,
               addByRSSPodcastFeedUrl: podcast.addByRSSPodcastFeedUrl
             })
-          }
+          }}
           hasZebraStripe={isOdd(index)}
           hideImage={true}
           id={item.id}
@@ -384,7 +380,7 @@ export class PodcastScreen extends React.Component<Props, State> {
           description={description}
           handleMorePress={() => this._handleMorePress(convertToNowPlayingItem(item, null, podcast))}
           handleNavigationPress={() =>
-            this.props.navigation.navigate(screen, {
+            this.props.navigation.navigate(PV.RouteNames.EpisodeScreen, {
               episode,
               addByRSSPodcastFeedUrl: podcast.addByRSSPodcastFeedUrl
             })
@@ -575,6 +571,7 @@ export class PodcastScreen extends React.Component<Props, State> {
       showSettings,
       viewType
     } = this.state
+    const { offlineModeEnabled } = this.global
     const subscribedPodcastIds = safelyUnwrapNestedVariable(() => this.global.session.userInfo.subscribedPodcastIds, [])
 
     let isSubscribed = subscribedPodcastIds.some((x: string) => x === podcastId)
@@ -599,11 +596,12 @@ export class PodcastScreen extends React.Component<Props, State> {
       flatListDataTotalCount = flatListData.length
     }
 
-    const resultsText =
-      (viewType === PV.Filters._downloadedKey && translate('episodes')) ||
-      (viewType === PV.Filters._episodesKey && translate('episodes')) ||
-      (viewType === PV.Filters._clipsKey && translate('clips')) ||
-      translate('results')
+    const noResultsMessage =
+      (viewType === PV.Filters._downloadedKey && translate('No episodes found')) ||
+      (viewType === PV.Filters._episodesKey && translate('No episodes found')) ||
+      (viewType === PV.Filters._clipsKey && translate('No clips found'))
+
+    const showOfflineMessage = offlineModeEnabled && queryFrom !== PV.Filters._downloadedKey
 
     return (
       <View style={styles.view} {...testProps('podcast_screen_view')}>
@@ -672,11 +670,11 @@ export class PodcastScreen extends React.Component<Props, State> {
                     ? this._ListHeaderComponent
                     : null
                 }
+                noResultsMessage={noResultsMessage}
                 onEndReached={this._onEndReached}
                 renderHiddenItem={this._renderHiddenItem}
                 renderItem={this._renderItem}
-                resultsText={resultsText}
-                showNoInternetConnectionMessage={showNoInternetConnectionMessage}
+                showNoInternetConnectionMessage={offlineModeEnabled || showNoInternetConnectionMessage}
               />
             )}
             {!isLoading && viewType === PV.Filters._aboutPodcastKey && podcast && (
@@ -695,7 +693,10 @@ export class PodcastScreen extends React.Component<Props, State> {
                   selectedItem,
                   navigation,
                   this._handleCancelPress,
-                  this._handleDownloadPressed
+                  this._handleDownloadPressed,
+                  null, // handleDeleteClip
+                  false, // includeGoToPodcast
+                  'isPodcastsStack' // includeGoToEpisode
                 )
               }
               showModal={showActionSheet}
@@ -705,19 +706,11 @@ export class PodcastScreen extends React.Component<Props, State> {
         <Dialog.Container visible={showDeleteDownloadedEpisodesDialog}>
           <Dialog.Title>{translate('Delete Downloaded Episodes')}</Dialog.Title>
           <Dialog.Description>
-            {translate('Are you sure you want to delete all of your downloaded episodes from this podcast?')}
+            {translate('Are you sure you want to delete all of your downloaded episodes from this podcast')}
           </Dialog.Description>
           <Dialog.Button label={translate('No')} onPress={this._handleToggleDeleteDownloadedEpisodesDialog} />
           <Dialog.Button label={translate('Yes')} onPress={this._handleDeleteDownloadedEpisodes} />
         </Dialog.Container>
-        <NavigationEvents
-          onWillFocus={() => {
-            const shouldReload = navigation.getParam('shouldReload')
-            if (shouldReload) {
-              this.handleDidMount()
-            }
-          }}
-        />
       </View>
     )
   }
@@ -765,7 +758,11 @@ export class PodcastScreen extends React.Component<Props, State> {
     } as State
 
     const hasInternetConnection = await hasValidNetworkConnection()
-    newState.showNoInternetConnectionMessage = !hasInternetConnection && filterKey !== PV.Filters._downloadedKey
+
+    if (!hasInternetConnection && filterKey !== PV.Filters._downloadedKey) {
+      newState.showNoInternetConnectionMessage = true
+      return newState
+    }
 
     try {
       if (filterKey === PV.Filters._episodesKey && podcast && podcast.addByRSSPodcastFeedUrl) {

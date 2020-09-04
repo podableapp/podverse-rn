@@ -89,8 +89,7 @@ export class AddPodcastByRSSScreen extends React.Component<Props, State> {
           const podcast = await getAddByRSSPodcastLocally(url)
           this.props.navigation.navigate(PV.RouteNames.PodcastScreen, {
             podcast,
-            addByRSSPodcastFeedUrl: podcast.addByRSSPodcastFeedUrl,
-            shouldReload: true
+            addByRSSPodcastFeedUrl: podcast.addByRSSPodcastFeedUrl
           })
         } catch (error) {
           console.log('_handleSavePodcastByRSSURL', error)
@@ -177,7 +176,7 @@ const styles = StyleSheet.create({
   text: {
     fontSize: PV.Fonts.sizes.md,
     marginVertical: 12,
-    textAlign: 'center'
+    textAlign: 'left'
   },
   textInput: {
     fontSize: PV.Fonts.sizes.xl,
