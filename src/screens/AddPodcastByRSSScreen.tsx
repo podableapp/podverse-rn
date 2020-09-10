@@ -124,7 +124,7 @@ export class AddPodcastByRSSScreen extends React.Component<Props, State> {
               underlineColorAndroid='transparent'
               value={url}
             />
-            <Divider style={styles.divider} />
+            {/* <Divider style={styles.divider} />
             <Text fontSizeLargestScale={PV.Fonts.largeSizes.sm} style={styles.text}>
               {translate('AddPodcastByRSSScreenText1')}
             </Text>
@@ -136,7 +136,7 @@ export class AddPodcastByRSSScreen extends React.Component<Props, State> {
             </Text>
             <Text fontSizeLargestScale={PV.Fonts.largeSizes.sm} style={styles.text}>
               {translate('AddPodcastByRSSScreenText4')}
-            </Text>
+            </Text> */}
             {!!PV.URLs.requestPodcast && (
               <TextLink
                 fontSizeLargestScale={PV.Fonts.largeSizes.sm}
