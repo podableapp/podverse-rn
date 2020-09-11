@@ -386,13 +386,23 @@ export class ClipsScreen extends React.Component<Props, State> {
       showDeleteConfirmDialog,
       showNoInternetConnectionMessage
     } = this.state
-    const { session } = this.global
+    const { offlineModeEnabled, session } = this.global
+    const subscribedPodcastIds = safelyUnwrapNestedVariable(() => session.userInfo.subscribedPodcastIds, '')
+    const isLoggedIn = safelyUnwrapNestedVariable(() => session.isLoggedIn, false)
+
+    const noSubscribedPodcasts =
+      queryFrom === PV.Filters._subscribedKey &&
+      (!subscribedPodcastIds || subscribedPodcastIds.length === 0) &&
+      !searchBarText
+
+    const showOfflineMessage = offlineModeEnabled
 
     return (
       <View style={styles.view} {...testProps('clips_screen_view')}>
         <TableSectionSelectors
           handleSelectLeftItem={this.selectLeftItem}
           handleSelectRightItem={this.selectRightItem}
+          isLoggedIn={isLoggedIn}
           screenName='ClipsScreen'
           selectedLeftItemKey={queryFrom}
           selectedRightItemKey={querySort}
@@ -415,20 +425,21 @@ export class ClipsScreen extends React.Component<Props, State> {
             dataTotalCount={flatListDataTotalCount}
             disableLeftSwipe={queryFrom !== PV.Filters._myClipsKey}
             extraData={flatListData}
-            handleSearchNavigation={this._handleSearchNavigation}
+            handleNoResultsTopAction={this._handleSearchNavigation}
             isLoadingMore={isLoadingMore}
             isRefreshing={isRefreshing}
             ItemSeparatorComponent={this._ItemSeparatorComponent}
             keyExtractor={(item: any) => item.id}
             ListHeaderComponent={this._ListHeaderComponent}
-            noSubscribedPodcasts={
-              queryFrom === PV.Filters._subscribedKey && (!flatListData || flatListData.length === 0) && !searchBarText
+            noResultsTopActionText={noSubscribedPodcasts ? translate('Search') : ''}
+            noResultsMessage={
+              noSubscribedPodcasts ? translate('You are not subscribed to any podcasts') : translate('No clips found')
             }
             onEndReached={this._onEndReached}
             onRefresh={this._onRefresh}
             renderHiddenItem={this._renderHiddenItem}
             renderItem={this._renderClipItem}
-            showNoInternetConnectionMessage={showNoInternetConnectionMessage}
+            showNoInternetConnectionMessage={showOfflineMessage || showNoInternetConnectionMessage}
           />
         )}
         <ActionSheet
@@ -463,6 +474,17 @@ export class ClipsScreen extends React.Component<Props, State> {
     )
   }
 
+  _getLoggedInUserMediaRefs = async (queryPage?: number, newSortFilter?: string) => {
+    return getLoggedInUserMediaRefs(
+      {
+        sort: newSortFilter ? newSortFilter : PV.Filters._mostRecentKey,
+        page: queryPage ? queryPage : 1,
+        includePodcast: true
+      },
+      this.global.settings.nsfwMode
+    )
+  }
+
   _queryData = async (
     filterKey: string | null,
     queryOptions: {
@@ -479,7 +501,11 @@ export class ClipsScreen extends React.Component<Props, State> {
     } as State
 
     const hasInternetConnection = await hasValidNetworkConnection()
-    newState.showNoInternetConnectionMessage = !hasInternetConnection
+
+    if (!hasInternetConnection) {
+      newState.showNoInternetConnectionMessage = true
+      return newState
+    }
 
     try {
       let { flatListData } = this.state
@@ -528,14 +554,7 @@ export class ClipsScreen extends React.Component<Props, State> {
         newState.endOfResultsReached = newState.flatListData.length >= results[1]
         newState.flatListDataTotalCount = results[1]
       } else if (filterKey === PV.Filters._myClipsKey) {
-        const results = await getLoggedInUserMediaRefs(
-          {
-            sort: querySort,
-            page: queryPage,
-            includePodcast: true
-          },
-          this.global.settings.nsfwMode
-        )
+        const results = await this._getLoggedInUserMediaRefs(queryPage)
         newState.flatListData = [...flatListData, ...results[0]]
         newState.endOfResultsReached = newState.flatListData.length >= results[1]
         newState.flatListDataTotalCount = results[1]
@@ -558,17 +577,23 @@ export class ClipsScreen extends React.Component<Props, State> {
           newState.flatListDataTotalCount = podcastResults[1]
         }
       } else if (PV.FilterOptions.screenFilters.ClipsScreen.sort.some((option) => option === filterKey)) {
-        const results = await getMediaRefs(
-          {
-            ...setCategoryQueryProperty(queryFrom, selectedCategory, selectedSubCategory),
-            ...(queryFrom === PV.Filters._subscribedKey ? { podcastId } : {}),
-            sort: filterKey,
-            ...(searchAllFieldsText ? { searchAllFieldsText } : {}),
-            subscribedOnly: queryFrom === PV.Filters._subscribedKey,
-            includePodcast: true
-          },
-          nsfwMode
-        )
+        let results = []
+        if (queryFrom === PV.Filters._myClipsKey) {
+          results = await this._getLoggedInUserMediaRefs(queryPage, filterKey)
+        } else {
+          results = await getMediaRefs(
+            {
+              ...setCategoryQueryProperty(queryFrom, selectedCategory, selectedSubCategory),
+              ...(queryFrom === PV.Filters._subscribedKey ? { podcastId } : {}),
+              sort: filterKey,
+              ...(searchAllFieldsText ? { searchAllFieldsText } : {}),
+              subscribedOnly: queryFrom === PV.Filters._subscribedKey,
+              includePodcast: true
+            },
+            nsfwMode
+          )
+        }
+
         newState.flatListData = results[0]
         newState.endOfResultsReached = newState.flatListData.length >= results[1]
         newState.flatListDataTotalCount = results[1]

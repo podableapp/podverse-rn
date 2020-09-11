@@ -49,7 +49,7 @@ export class PlaylistScreen extends React.Component<Props, State> {
       headerRight: (
         <RNView style={core.row}>
           <NavShareIcon
-            endingText=' – playlist shared using Podverse'
+            endingText={translate('shared using brandName')}
             playlistTitle={playlistTitle}
             url={PV.URLs.playlist + playlistId}
           />
@@ -256,6 +256,7 @@ export class PlaylistScreen extends React.Component<Props, State> {
             isLoadingMore={isLoadingMore}
             ItemSeparatorComponent={this._ItemSeparatorComponent}
             keyExtractor={(item: any) => item.id}
+            noResultsMessage={translate('No playlist items found')}
             renderItem={this._renderItem}
           />
         )}
@@ -266,7 +267,10 @@ export class PlaylistScreen extends React.Component<Props, State> {
               selectedItem,
               navigation,
               this._handleCancelPress,
-              this._handleDownloadPressed
+              this._handleDownloadPressed,
+              null, // handleDeleteClip
+              true, // includeGoToPodcast
+              true // includeGoToEpisode
             )
           }
           showModal={showActionSheet}

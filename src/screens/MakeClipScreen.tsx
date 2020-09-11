@@ -283,7 +283,7 @@ export class MakeClipScreen extends React.Component<Props, State> {
                   const { nowPlayingItem = {} } = this.global.player
                   const title = `${data.title || translate('untitled clip')} – ${nowPlayingItem.podcastTitle} – ${
                     nowPlayingItem.episodeTitle
-                  }${translate(' – clip created using Podverse')}`
+                  }${translate('clip created using brandName')}`
                   try {
                     await Share.open({
                       title,
@@ -374,7 +374,7 @@ export class MakeClipScreen extends React.Component<Props, State> {
                   fontSizeLargestScale={PV.Fonts.largeSizes.md}
                   numberOfLines={1}
                   style={[core.textInputLabel, styles.loginMessage]}>
-                  {translate('You must be logged in to make clips.')}
+                  {translate('You must be logged in to make clips')}
                 </Text>
                 <Divider style={styles.divider} />
               </RNView>
@@ -492,12 +492,12 @@ export class MakeClipScreen extends React.Component<Props, State> {
                   right: 4,
                   top: 4
                 }}
-                onPress={() => navigation.navigate(PV.RouteNames.PlayerFAQScreen)}>
+                onPress={() => this.setState({ showHowToModal: true })}>
                 <View transparent={true}>
                   <Text
                     fontSizeLargestScale={PV.Fonts.largeSizes.sm}
                     style={[styles.bottomRowTextMini, globalTheme.link]}>
-                    {translate('Clips FAQ')}
+                    {translate('How To')}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -524,19 +524,12 @@ export class MakeClipScreen extends React.Component<Props, State> {
                   right: 4,
                   top: 4
                 }}
-                onPress={() =>
-                  navigation.navigate(PV.RouteNames.PlayerMyProfileScreen, {
-                    user: userInfo,
-                    navigationTitle: translate('My Profile'),
-                    isMyProfile: true,
-                    initializeClips: true
-                  })
-                }>
+                onPress={() => navigation.navigate(PV.RouteNames.PlayerFAQScreen)}>
                 <View transparent={true}>
                   <Text
                     fontSizeLargestScale={PV.Fonts.largeSizes.sm}
                     style={[styles.bottomRowTextMini, globalTheme.link]}>
-                    {translate('My Clips')}
+                    FAQ
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -558,9 +551,13 @@ export class MakeClipScreen extends React.Component<Props, State> {
                   {translate('Tap the Start and End Time inputs to set them with the current track time')}
                 </Text>
                 <Text fontSizeLargestScale={PV.Fonts.largeSizes.md} style={styles.modalText}>
-                  {translate(
-                    'If a podcast uses dynamically inserted ads, its clip start times will not stay 100% accurate'
-                  )}
+                  {translate('Press the left or right caret symbols to adjust the time by one second')}
+                </Text>
+                <Text fontSizeLargestScale={PV.Fonts.largeSizes.md} style={styles.modalText}>
+                  {translate('Press the blue play button to preview the start or end time')}
+                </Text>
+                <Text fontSizeLargestScale={PV.Fonts.largeSizes.md} style={styles.modalText}>
+                  {translate('If a podcast uses dynamically inserted ads its clip start times will not stay accurate')}
                 </Text>
                 <TouchableOpacity onPress={this._hideHowTo}>
                   <Text fontSizeLargestScale={PV.Fonts.largeSizes.md} numberOfLines={1} style={styles.modalButton}>

@@ -36,14 +36,12 @@ export const RouteNames = {
   ProfileScreen: 'ProfileScreen',
   PurchasingScreen: 'PurchasingScreen',
   QueueScreen: 'QueueScreen',
-  SearchEpisodeScreen: 'SearchEpisodeScreen',
-  SearchPodcastScreen: 'SearchPodcastScreen',
+  ScanQRCodeScreen: 'ScanQRCodeScreen',
   SearchScreen: 'SearchScreen',
   SearchSearchScreen: 'SearchSearchScreen',
   SettingsScreen: 'SettingsScreen',
   SleepTimerScreen: 'SleepTimerScreen',
   TabNavigator: 'TabNavigator',
   TermsOfServiceScreen: 'TermsOfServiceScreen',
-  WebPageScreen: 'WebPageScreen',
-  ScanQRCodeScreen: 'ScanQRCodeScreen'
+  WebPageScreen: 'WebPageScreen'
 }

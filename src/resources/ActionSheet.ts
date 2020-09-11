@@ -5,6 +5,7 @@ import Config from 'react-native-config'
 import Share from 'react-native-share'
 import { getGlobal } from 'reactn'
 import { translate } from '../lib/i18n'
+import { navigateToEpisodeScreenWithItem, navigateToPodcastScreenWithItem } from '../lib/navigate'
 import { safelyUnwrapNestedVariable } from '../lib/utility'
 import { IActionSheet } from '../resources/Interfaces'
 import { PVTrackPlayer } from '../services/player'
@@ -20,7 +21,7 @@ const mediaMoreButtons = (
   handleDownload: any,
   handleDeleteClip: any,
   includeGoToPodcast?: boolean,
-  includeGoToEpisode?: boolean
+  includeGoToEpisode?: boolean | string
 ) => {
   if (!item || !item.episodeId) return
 
@@ -133,7 +134,7 @@ const mediaMoreButtons = (
   )
 
   if (!item.addByRSSPodcastFeedUrl) {
-    if (!Config.DISABLE_ADD_TO_PLAYLIST) {
+    if (!Config.DISABLE_ADD_TO_PLAYLIST && isLoggedIn) {
       buttons.push({
         key: 'addToPlaylist',
         text: translate('Add to Playlist'),
@@ -157,10 +158,10 @@ const mediaMoreButtons = (
             if (item.clipId) {
               url = PV.URLs.clip + item.clipId
               title = item.clipTitle ? item.clipTitle : translate('untitled clip –')
-              title += ` ${item.podcastTitle} – ${item.episodeTitle} – ${translate('clip shared using Podverse')}`
+              title += ` ${item.podcastTitle} – ${item.episodeTitle} – ${translate('clip shared using brandName')}`
             } else if (item.episodeId) {
               url = PV.URLs.episode + item.episodeId
-              title += `${item.podcastTitle} – ${item.episodeTitle} – ${translate('shared using Podverse')}`
+              title += `${item.podcastTitle} – ${item.episodeTitle} – ${translate('shared using brandName')}`
             }
             await Share.open({
               title,
@@ -187,26 +188,13 @@ const mediaMoreButtons = (
     })
   }
 
-  const navToPodcastScreen = () => {
-    navigation.navigate(PV.RouteNames.PodcastScreen, {
-      addByRSSPodcastFeedUrl: item.addByRSSPodcastFeedUrl,
-      podcastId: item.podcastId,
-      podcast: {
-        id: item.podcastId,
-        title: item.podcastTitle,
-        imageUrl: item.podcastImageUrl
-      },
-      shouldReload: true
-    })
-  }
-
   if (includeGoToPodcast) {
     buttons.push({
       key: 'goToPodcast',
       text: translate('Go to Podcast'),
       onPress: async () => {
         await handleDismiss()
-        navToPodcastScreen()
+        navigateToPodcastScreenWithItem(navigation, item)
       }
     })
   }
@@ -214,21 +202,10 @@ const mediaMoreButtons = (
   if (includeGoToEpisode) {
     buttons.push({
       key: 'goToEpisode',
-      text: 'Go to Episode',
+      text: translate('Go to Episode'),
       onPress: async () => {
         await handleDismiss()
-        navToPodcastScreen()
-        navigation.navigate(PV.RouteNames.EpisodeScreen, {
-          episodeId: item.episodeId,
-          episode: {
-            id: item.episodeId,
-            title: item.episodeTitle,
-            podcast: {
-              imageUrl: item.podcastImageUrl,
-              title: item.podcastTitle
-            }
-          }
-        })
+        navigateToEpisodeScreenWithItem(navigation, item)
       }
     })
   }

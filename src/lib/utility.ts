@@ -1,9 +1,31 @@
 import AsyncStorage from '@react-native-community/async-storage'
 import he from 'he'
 import { NowPlayingItem } from 'podverse-shared'
+import Config from 'react-native-config'
+import { getUserAgent } from 'react-native-device-info'
 import { PV } from '../resources'
 
 const cheerio = require('react-native-cheerio')
+
+let userAgent = ''
+
+/*
+ * getUserAgent sometimes crashes in the iOS simulator. This is apparently related
+ * to parallel process handling, so we are trying to only call the getUserAgent
+ * method once on app launch, then access that value in the userAgent constant.
+ */
+export const setAppUserAgent = async () => {
+  try {
+    userAgent = await getUserAgent()
+  } catch (e) {
+    console.log('setAppUserAgent', e)
+  }
+}
+
+export const getAppUserAgent = async () => {
+  return `${Config.USER_AGENT_PREFIX || 'Unknown App'}/${`${Config.USER_AGENT_APP_TYPE}` ||
+    'Unknown App Type'}/${userAgent}`
+}
 
 export const safelyUnwrapNestedVariable = (func: any, fallbackValue: any) => {
   try {
@@ -508,4 +530,8 @@ export const isValidUrl = (str?: string) => {
 
 export const testProps = (id: string) => {
   return { testID: id, accessibilityLabel: id }
+}
+
+export const getUniqueArrayByKey = (arr: any[], key: string) => {
+  return [...new Map(arr.map((item: any) => [item[key], item])).values()]
 }

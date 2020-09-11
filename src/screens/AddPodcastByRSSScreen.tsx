@@ -49,15 +49,9 @@ export class AddPodcastByRSSScreen extends React.Component<Props, State> {
   }
 
   async componentDidMount() {
-    const { navigation } = this.props
     this.props.navigation.setParams({
       _handleSavePodcastByRSSURL: this._handleSavePodcastByRSSURL
     })
-    const feedUrl = navigation.getParam('podverse-param')
-
-    if (feedUrl) {
-      this.setState({ url: feedUrl })
-    }
 
     gaTrackPageView('/add-podcast-by-rss', 'Add Podcast By RSS Screen')
   }
@@ -89,8 +83,7 @@ export class AddPodcastByRSSScreen extends React.Component<Props, State> {
           const podcast = await getAddByRSSPodcastLocally(url)
           this.props.navigation.navigate(PV.RouteNames.PodcastScreen, {
             podcast,
-            addByRSSPodcastFeedUrl: podcast.addByRSSPodcastFeedUrl,
-            shouldReload: true
+            addByRSSPodcastFeedUrl: podcast.addByRSSPodcastFeedUrl
           })
         } catch (error) {
           console.log('_handleSavePodcastByRSSURL', error)
@@ -133,23 +126,25 @@ export class AddPodcastByRSSScreen extends React.Component<Props, State> {
             />
             <Divider style={styles.divider} />
             <Text fontSizeLargestScale={PV.Fonts.largeSizes.sm} style={styles.text}>
-              {translate('AddPodcastByRSSScreen.text1')}
+              {translate('AddPodcastByRSSScreenText1')}
             </Text>
             <Text fontSizeLargestScale={PV.Fonts.largeSizes.sm} style={styles.text}>
-              {translate('AddPodcastByRSSScreen.text2')}
+              {translate('AddPodcastByRSSScreenText2')}
             </Text>
             <Text fontSizeLargestScale={PV.Fonts.largeSizes.sm} style={styles.text}>
-              {translate('AddPodcastByRSSScreen.text3')}
+              {translate('AddPodcastByRSSScreenText3')}
             </Text>
             <Text fontSizeLargestScale={PV.Fonts.largeSizes.sm} style={styles.text}>
-              {translate('AddPodcastByRSSScreen.text4')}
+              {translate('AddPodcastByRSSScreenText4')}
             </Text>
-            <TextLink
-              fontSizeLargestScale={PV.Fonts.largeSizes.sm}
-              onPress={this._navToRequestPodcastForm}
-              style={styles.textLink}>
-              {translate('Request Podcast')}
-            </TextLink>
+            {PV.URLs.requestPodcast && (
+              <TextLink
+                fontSizeLargestScale={PV.Fonts.largeSizes.sm}
+                onPress={this._navToRequestPodcastForm}
+                style={styles.textLink}>
+                {translate('Request Podcast')}
+              </TextLink>
+            )}
           </ScrollView>
         )}
       </View>
@@ -177,7 +172,7 @@ const styles = StyleSheet.create({
   text: {
     fontSize: PV.Fonts.sizes.md,
     marginVertical: 12,
-    textAlign: 'center'
+    textAlign: 'left'
   },
   textInput: {
     fontSize: PV.Fonts.sizes.xl,

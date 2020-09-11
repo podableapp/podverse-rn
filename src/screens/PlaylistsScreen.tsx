@@ -138,12 +138,18 @@ export class PlaylistsScreen extends React.Component<Props, State> {
     })
   }
 
-  _onPressLogin = () => this.props.navigation.navigate(PV.RouteNames.AuthScreen)
+  _onPressLogin = () => {
+    this.props.navigation.goBack(null)
+    this.props.navigation.navigate(PV.RouteNames.AuthScreen)
+  }
 
   render() {
     const { isLoading, isLoadingMore, queryFrom, showNoInternetConnectionMessage } = this.state
+    const { offlineModeEnabled } = this.global
     const { myPlaylists, subscribedPlaylists } = this.global.playlists
     const flatListData = queryFrom === PV.Filters._myPlaylistsKey ? myPlaylists : subscribedPlaylists
+
+    const showOfflineMessage = offlineModeEnabled
 
     return (
       <View style={styles.view} {...testProps('playlists_screen_view')}>
@@ -154,32 +160,27 @@ export class PlaylistsScreen extends React.Component<Props, State> {
             selectedLeftItemKey={queryFrom}
           />
           {isLoading && <ActivityIndicator />}
-          {!isLoading && flatListData && flatListData.length > 0 && (
+          {!isLoading && this.global.session.isLoggedIn && (
             <FlatList
               data={flatListData}
+              dataTotalCount={flatListData && flatListData.length}
               disableLeftSwipe={false}
               extraData={flatListData}
               isLoadingMore={isLoadingMore}
               ItemSeparatorComponent={this._ItemSeparatorComponent}
               keyExtractor={(item: any) => item.id}
+              noResultsMessage={translate('No playlists found')}
               renderHiddenItem={this._renderHiddenItem}
               renderItem={this._renderPlaylistItem}
-              showNoInternetConnectionMessage={showNoInternetConnectionMessage}
+              showNoInternetConnectionMessage={showOfflineMessage || showNoInternetConnectionMessage}
             />
           )}
-          {!isLoading && queryFrom === PV.Filters._myPlaylistsKey && !this.global.session.isLoggedIn && (
+          {!isLoading && !this.global.session.isLoggedIn && (
             <MessageWithAction
               topActionHandler={this._onPressLogin}
               topActionText={translate('Login')}
               message={translate('Login to view your playlists')}
             />
-          )}
-          {!isLoading &&
-            queryFrom === PV.Filters._myPlaylistsKey &&
-            this.global.session.isLoggedIn &&
-            flatListData.length < 1 && <MessageWithAction message={translate('You have no created playlists')} />}
-          {!isLoading && queryFrom === PV.Filters._subscribedKey && flatListData.length < 1 && (
-            <MessageWithAction message={translate('You have no subscribed playlists')} />
           )}
         </View>
       </View>
@@ -200,7 +201,11 @@ export class PlaylistsScreen extends React.Component<Props, State> {
     } as State
 
     const hasInternetConnection = await hasValidNetworkConnection()
-    newState.showNoInternetConnectionMessage = !hasInternetConnection
+
+    if (!hasInternetConnection) {
+      newState.showNoInternetConnectionMessage = true
+      return newState
+    }
 
     try {
       if (filterKey === PV.Filters._myPlaylistsKey) {

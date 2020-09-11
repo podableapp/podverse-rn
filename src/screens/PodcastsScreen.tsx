@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-community/async-storage'
 import debounce from 'lodash/debounce'
 import { Alert, AppState, Linking, Platform, StyleSheet, View as RNView } from 'react-native'
+import Config from 'react-native-config'
 import Dialog from 'react-native-dialog'
 import React from 'reactn'
 import {
@@ -18,10 +19,11 @@ import {
 import { getDownloadedPodcasts } from '../lib/downloadedPodcast'
 import { translate } from '../lib/i18n'
 import { alertIfNoNetworkConnection, hasValidNetworkConnection } from '../lib/network'
-import { isOdd, setCategoryQueryProperty, testProps } from '../lib/utility'
+import { getAppUserAgent, isOdd, setAppUserAgent, setCategoryQueryProperty, testProps } from '../lib/utility'
 import { PV } from '../resources'
 import { getEpisode } from '../services/episode'
 import { gaTrackPageView } from '../services/googleAnalytics'
+import { getAddByRSSPodcastsLocally } from '../services/parser'
 import {
   checkIdlePlayerState,
   getNowPlayingItemFromQueueOrHistoryByTrackId,
@@ -31,6 +33,7 @@ import {
 import { getPodcast, getPodcasts } from '../services/podcast'
 import { getAuthUserInfo } from '../state/actions/auth'
 import { initDownloads, removeDownloadedPodcast } from '../state/actions/downloads'
+import { getAddByRSSPodcasts } from '../state/actions/parser'
 import {
   initializePlaybackSpeed,
   initializePlayerQueue,
@@ -227,8 +230,7 @@ export class PodcastsScreen extends React.Component<Props, State> {
             const podcast = await getPodcast(episode.podcast.id)
             navigate(PV.RouteNames.PodcastScreen, {
               podcast,
-              navToEpisodeWithId: id,
-              shouldReload: true
+              navToEpisodeWithId: id
             })
             navigate(PV.RouteNames.EpisodeScreen, {
               episode
@@ -244,8 +246,7 @@ export class PodcastsScreen extends React.Component<Props, State> {
           await navigate(PV.RouteNames.PlaylistsScreen)
         } else if (path === PV.DeepLinks.Podcast.pathPrefix) {
           await navigate(PV.RouteNames.PodcastScreen, {
-            podcastId: id,
-            shouldReload: true
+            podcastId: id
           })
         } else if (path === PV.DeepLinks.Podcasts.path) {
           await navigate(PV.RouteNames.PodcastsScreen)
@@ -272,6 +273,12 @@ export class PodcastsScreen extends React.Component<Props, State> {
     await initPlayerState(this.global)
     await initializeSettings()
 
+    // Set the appUserAgent one time on initialization, then retrieve from a constant
+    // using the getAppUserAgent method, or from the global state (for synchronous access).
+    await setAppUserAgent()
+    const userAgent = await getAppUserAgent()
+    this.setGlobal({ userAgent })
+
     try {
       await getAuthUserInfo()
     } catch (error) {
@@ -279,11 +286,21 @@ export class PodcastsScreen extends React.Component<Props, State> {
       // If getAuthUserInfo fails, continue with the networkless version of the app
     }
 
-    const { subscribedPodcastIds } = this.global.session.userInfo
-    if (subscribedPodcastIds && subscribedPodcastIds.length > 0) {
+    const addByRSSPodcasts = await getAddByRSSPodcastsLocally()
+    const { addByRSSPodcastFeedUrls, subscribedPodcastIds } = this.global.session.userInfo
+
+    /*
+     * If any podcasts are saved in local storage, or in the auth user object,
+     * then default to the Subscribed filter, else fallback to the All Podcasts filter.
+     */
+    if (
+      (subscribedPodcastIds && subscribedPodcastIds.length > 0) ||
+      (addByRSSPodcasts && addByRSSPodcasts.length > 0) ||
+      (addByRSSPodcastFeedUrls && addByRSSPodcastFeedUrls.length > 0)
+    ) {
       this.selectLeftItem(PV.Filters._subscribedKey, PV.Filters._alphabeticalKey)
     } else {
-      this.selectLeftItem(PV.Filters._allPodcastsKey, PV.Filters._topPastWeek)
+      this.selectLeftItem(Config.DEFAULT_QUERY_PODCASTS_SCREEN, PV.Filters._topPastWeek)
     }
 
     await initDownloads()
@@ -433,9 +450,6 @@ export class PodcastsScreen extends React.Component<Props, State> {
   }
 
   _renderPodcastItem = ({ item, index }) => {
-    const { downloadedPodcastEpisodeCounts } = this.global
-    const episodeCount = downloadedPodcastEpisodeCounts[item.id]
-
     return (
       <PodcastTableCell
         hasZebraStripe={isOdd(index)}
@@ -444,8 +458,7 @@ export class PodcastsScreen extends React.Component<Props, State> {
         onPress={() =>
           this.props.navigation.navigate(PV.RouteNames.PodcastScreen, {
             podcast: item,
-            addByRSSPodcastFeedUrl: item.addByRSSPodcastFeedUrl,
-            shouldReload: true
+            addByRSSPodcastFeedUrl: item.addByRSSPodcastFeedUrl
           })
         }
         podcastImageUrl={item.shrunkImageUrl || item.imageUrl}
@@ -574,6 +587,8 @@ export class PodcastsScreen extends React.Component<Props, State> {
       showDataSettingsConfirmDialog,
       showNoInternetConnectionMessage
     } = this.state
+    const { offlineModeEnabled } = this.global
+    const { subscribedPodcastIds } = this.global.session.userInfo
 
     let flatListData = []
     let flatListDataTotalCount = null
@@ -587,6 +602,12 @@ export class PodcastsScreen extends React.Component<Props, State> {
       flatListData = this.state.flatListData
       flatListDataTotalCount = this.state.flatListDataTotalCount
     }
+
+    const noSubscribedPodcasts =
+      queryFrom === PV.Filters._subscribedKey && (!subscribedPodcastIds || subscribedPodcastIds.length === 0)
+
+    const showOfflineMessage =
+      offlineModeEnabled && queryFrom !== PV.Filters._downloadedKey && queryFrom !== PV.Filters._subscribedKey
 
     return (
       <View style={styles.view} {...testProps('podcasts_screen_view')}>
@@ -618,7 +639,7 @@ export class PodcastsScreen extends React.Component<Props, State> {
               dataTotalCount={flatListDataTotalCount}
               disableLeftSwipe={queryFrom !== PV.Filters._subscribedKey && queryFrom !== PV.Filters._downloadedKey}
               extraData={flatListData}
-              handleSearchNavigation={this._handleSearchNavigation}
+              handleNoResultsTopAction={this._handleSearchNavigation}
               keyExtractor={(item: any) => item.id}
               isLoadingMore={isLoadingMore}
               isRefreshing={isRefreshing}
@@ -628,15 +649,17 @@ export class PodcastsScreen extends React.Component<Props, State> {
                   ? this._ListHeaderComponent
                   : null
               }
-              noSubscribedPodcasts={
-                queryFrom === PV.Filters._subscribedKey && (!flatListData || flatListData.length === 0)
+              noResultsTopActionText={noSubscribedPodcasts ? translate('Search') : ''}
+              noResultsMessage={
+                noSubscribedPodcasts
+                  ? translate('You are not subscribed to any podcasts')
+                  : translate('No podcasts found')
               }
               onEndReached={this._onEndReached}
               onRefresh={queryFrom === PV.Filters._subscribedKey ? this._onRefresh : null}
               renderHiddenItem={this._renderHiddenItem}
               renderItem={this._renderPodcastItem}
-              resultsText={translate('podcasts')}
-              showNoInternetConnectionMessage={showNoInternetConnectionMessage}
+              showNoInternetConnectionMessage={showOfflineMessage || showNoInternetConnectionMessage}
             />
           )}
         </RNView>
@@ -715,6 +738,7 @@ export class PodcastsScreen extends React.Component<Props, State> {
       const { nsfwMode } = settings
 
       const hasInternetConnection = await hasValidNetworkConnection()
+
       if (filterKey === PV.Filters._subscribedKey) {
         await getAuthUserInfo() // get the latest subscribedPodcastIds first
         await this._querySubscribedPodcasts()

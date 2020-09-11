@@ -7,6 +7,7 @@ import { translate } from '../lib/i18n'
 import { alertIfNoNetworkConnection } from '../lib/network'
 import { safelyUnwrapNestedVariable } from '../lib/utility'
 import { PV } from '../resources'
+import { getAddByRSSPodcastLocally } from '../services/parser'
 import { toggleAddByRSSPodcastFeedUrl } from '../state/actions/parser'
 import { toggleSubscribeToPodcast } from '../state/actions/podcast'
 import { actionSheetStyles, sliderStyles } from '../styles'
@@ -87,21 +88,19 @@ export class PlayerMoreActionSheet extends React.Component<Props, State> {
     })
     await navigation.dispatch(resetAction)
     if (nowPlayingItem && nowPlayingItem.addByRSSPodcastFeedUrl) {
-      const podcast = await getAddByRSSPodcast(nowPlayingItem.addByRSSPodcastFeedUrl)
+      const podcast = await getAddByRSSPodcastLocally(nowPlayingItem.addByRSSPodcastFeedUrl)
       navigation.navigate(PV.RouteNames.PodcastScreen, {
         podcast,
-        addByRSSPodcastFeedUrl: nowPlayingItem.addByRSSPodcastFeedUrl,
-        shouldReload: true
+        addByRSSPodcastFeedUrl: nowPlayingItem.addByRSSPodcastFeedUrl
       })
     } else {
       navigation.navigate(PV.RouteNames.PodcastScreen, {
-        podcast,
-        shouldReload: true
+        podcast
       })
     }
   }
 
-  _handleOfficialHomePagePress = (podcast: any) => {
+  _handleOfficialPodcastPagePress = (podcast: any) => {
     const { handleDismiss } = this.props
     handleDismiss()
     Linking.openURL(podcast.linkUrl)
@@ -149,7 +148,7 @@ export class PlayerMoreActionSheet extends React.Component<Props, State> {
           ''
         )}>
         <Text style={[actionSheetStyles.buttonText, globalTheme.actionSheetButtonText]}>
-          {translate('Podcast Page')}
+          {translate('Go to Podcast')}
         </Text>
       </TouchableHighlight>
     ]
@@ -157,8 +156,8 @@ export class PlayerMoreActionSheet extends React.Component<Props, State> {
     if (podcast && podcast.linkUrl) {
       children.push(
         <TouchableHighlight
-          key='officialHomePage'
-          onPress={() => this._handleOfficialHomePagePress(podcast)}
+          key='officialPodcastPage'
+          onPress={() => this._handleOfficialPodcastPagePress(podcast)}
           style={[actionSheetStyles.button, globalTheme.actionSheetButton]}
           underlayColor={safelyUnwrapNestedVariable(
             () => globalTheme.actionSheetButtonCancelUnderlay.backgroundColor,

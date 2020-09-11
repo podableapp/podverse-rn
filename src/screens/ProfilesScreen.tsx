@@ -1,14 +1,6 @@
 import { StyleSheet } from 'react-native'
 import React from 'reactn'
-import {
-  ActivityIndicator,
-  Divider,
-  FlatList,
-  MessageWithAction,
-  ProfileTableCell,
-  SwipeRowBack,
-  View
-} from '../components'
+import { ActivityIndicator, Divider, FlatList, ProfileTableCell, SwipeRowBack, View } from '../components'
 import { translate } from '../lib/i18n'
 import { alertIfNoNetworkConnection, hasValidNetworkConnection } from '../lib/network'
 import { isOdd, testProps } from '../lib/utility'
@@ -129,17 +121,23 @@ export class ProfilesScreen extends React.Component<Props, State> {
     })
   }
 
-  _onPressLogin = () => this.props.navigation.navigate(PV.RouteNames.AuthScreen)
+  _onPressLogin = () => {
+    this.props.navigation.goBack(null)
+    this.props.navigation.navigate(PV.RouteNames.AuthScreen)
+  }
 
   render() {
     const { isLoading, isLoadingMore, showNoInternetConnectionMessage } = this.state
+    const { offlineModeEnabled } = this.global
     const { flatListData, flatListDataTotalCount } = this.global.profiles
+
+    const showOfflineMessage = offlineModeEnabled
 
     return (
       <View style={styles.view} {...testProps('profiles_screen_view')}>
         <View style={styles.view}>
           {isLoading && <ActivityIndicator />}
-          {!isLoading && flatListData && flatListData.length > 0 && (
+          {!isLoading && (
             <FlatList
               data={flatListData}
               dataTotalCount={flatListDataTotalCount}
@@ -148,14 +146,12 @@ export class ProfilesScreen extends React.Component<Props, State> {
               isLoadingMore={isLoadingMore}
               ItemSeparatorComponent={this._ItemSeparatorComponent}
               keyExtractor={(item: any) => item.id}
+              noResultsMessage={translate('No profiles found')}
               onEndReached={this._onEndReached}
               renderHiddenItem={this._renderHiddenItem}
               renderItem={this._renderProfileItem}
-              showNoInternetConnectionMessage={showNoInternetConnectionMessage}
+              showNoInternetConnectionMessage={showOfflineMessage || showNoInternetConnectionMessage}
             />
-          )}
-          {!isLoading && flatListData && flatListData.length === 0 && (
-            <MessageWithAction message={translate('You have no subscribed profiles')} />
           )}
         </View>
       </View>
@@ -170,7 +166,11 @@ export class ProfilesScreen extends React.Component<Props, State> {
     } as State
 
     const hasInternetConnection = await hasValidNetworkConnection()
-    newState.showNoInternetConnectionMessage = !hasInternetConnection
+
+    if (!hasInternetConnection) {
+      newState.showNoInternetConnectionMessage = true
+      return newState
+    }
 
     try {
       const subscribedUserIds = this.global.session.userInfo.subscribedUserIds
