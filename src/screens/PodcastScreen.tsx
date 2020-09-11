@@ -601,8 +601,6 @@ export class PodcastScreen extends React.Component<Props, State> {
       (viewType === PV.Filters._episodesKey && translate('No episodes found')) ||
       (viewType === PV.Filters._clipsKey && translate('No clips found'))
 
-    const showOfflineMessage = offlineModeEnabled && queryFrom !== PV.Filters._downloadedKey
-
     return (
       <View style={styles.view} {...testProps('podcast_screen_view')}>
         <PodcastTableHeader
@@ -642,7 +640,7 @@ export class PodcastScreen extends React.Component<Props, State> {
               text={translate('Download limit max')}
             />
             <Text fontSizeLargestScale={PV.Fonts.largeSizes.sm} style={styles.settingsHelpText}>
-              {translate('Once the download limit is exceeded the oldest episode will be auto deleted.')}
+              {translate('Once the download limit is exceeded the oldest episode will be auto deleted')}
             </Text>
             <Divider style={styles.divider} />
             <Button
