@@ -2060,6 +2060,13 @@
 			remoteGlobalIDString = 463F41A7E8B252F8AC5024DA1F4AF6DA;
 			remoteInfo = "React-cxxreact";
 		};
+		888603B6AF13F7C6B5A1480B7B3840D2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFDFE7DC352907FC980B868725387E98 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1BEE828C124E6416179B904A9F66D794;
+			remoteInfo = React;
+		};
 		891B2710CA17095C35FA3AC27A38F8E3 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BFDFE7DC352907FC980B868725387E98 /* Project object */;
@@ -2514,13 +2521,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 7ACAA9BE580DD31A5CB9D97C45D9492D;
 			remoteInfo = "React-Core";
-		};
-		DCCFADB32AEE1624D663C9755205AF51 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = BFDFE7DC352907FC980B868725387E98 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 1BEE828C124E6416179B904A9F66D794;
-			remoteInfo = React;
 		};
 		DD5210D113FB5480D0E6BFF1CDE4245F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -4602,6 +4602,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A1D77384F48D73CFF592553E1CDC57A3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A67DE1447F6E2B32E4311F1865648051 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -5269,7 +5276,8 @@
 			children = (
 				363835E158B86B3DB2A08885239F21A5 /* React-RCTActionSheet.podspec */,
 			);
-			name = Pod;
+			name = Support;
+			path = ios/RNTrackPlayer/Support;
 			sourceTree = "<group>";
 		};
 		2B322F2C73E27BF85107ACD001B40972 /* Pod */ = {
@@ -5415,7 +5423,8 @@
 				750EF88273F51A27646CACCA8F819C99 /* README.md */,
 				4A6CEA771DA18782E4414583BE244D02 /* RNDeviceInfo.podspec */,
 			);
-			name = Pod;
+			name = Handlers;
+			path = ios/Handlers;
 			sourceTree = "<group>";
 		};
 		39A7EB60C391639E6C14426434BBDD5C /* Pod */ = {
@@ -5888,8 +5897,8 @@
 				2567E425B5069A58023BCC0DF35DD6CA /* Folly.debug.xcconfig */,
 				E3057EDC1591D3AFEC19A4035FF3A71E /* Folly.release.xcconfig */,
 			);
-			name = "Support Files";
-			path = "../Target Support Files/Folly";
+			name = "react-native-netinfo";
+			path = "../../node_modules/@react-native-community/netinfo";
 			sourceTree = "<group>";
 		};
 		5C52E51FB1C1A66F43D52D7DA5C05E54 /* React-RCTVibration */ = {
@@ -5998,7 +6007,7 @@
 				C6BB492C0B2590B8016E0F2DA7868152 /* README.md */,
 				C8397A2C5A1E6DF699CEDE88146B43E9 /* RNIap.podspec */,
 			);
-			name = Pod;
+			name = RCTActionSheetHeaders;
 			sourceTree = "<group>";
 		};
 		65266648AB75660E8176E3D62CB77DFA /* Support Files */ = {
@@ -6087,8 +6096,8 @@
 				DB2C5108232DFA833F2BE12EDDD016AA /* RCTRawTextShadowView.m */,
 				39E63580F9440382165ADFC5DFB02038 /* RCTRawTextViewManager.m */,
 			);
-			name = RawText;
-			path = RawText;
+			name = "React-jsinspector";
+			path = "../../node_modules/react-native/ReactCommon/jsinspector";
 			sourceTree = "<group>";
 		};
 		7174C1D6D6B65828C2AB065CB444C8F4 /* Pod */ = {
@@ -6190,7 +6199,8 @@
 			children = (
 				F687AE1408F7A511CDD7299B01421436 /* React-Core.podspec */,
 			);
-			name = Pod;
+			name = RCTRequired;
+			path = "../../node_modules/react-native/Libraries/RCTRequired";
 			sourceTree = "<group>";
 		};
 		7A4A1E3EC5BD9D6AA3607C6DD948F3EB /* Support Files */ = {
@@ -6731,7 +6741,8 @@
 			children = (
 				8601D0FE0F853D9B901D23E2AFF24C88 /* React-jsiexecutor.podspec */,
 			);
-			name = Pod;
+			name = "Support Files";
+			path = "../../ios/Pods/Target Support Files/React-Core";
 			sourceTree = "<group>";
 		};
 		9E9E418BEA9F0252E5CB9CA4A2C5A13C /* Support Files */ = {
@@ -7426,7 +7437,8 @@
 			children = (
 				00E46AE9B5F16F202D79AB7B54FDEFDC /* React-RCTImage.podspec */,
 			);
-			name = Pod;
+			name = "Support Files";
+			path = "../../ios/Pods/Target Support Files/react-native-background-timer";
 			sourceTree = "<group>";
 		};
 		CB1F2EF1E10DBC808CE8FDF894D7BD9A /* NowPlayingInfoController */ = {
@@ -7481,7 +7493,7 @@
 			path = "../Target Support Files/libwebp";
 			sourceTree = "<group>";
 		};
-		CF1408CF629C7361332E53B88F7BD30C = {
+		C9271033441A68D27418955A939AFCB8 /* Support Files */ = {
 			isa = PBXGroup;
 			children = (
 				9D940727FF8FB9C785EB98E56350EF41 /* Podfile */,
@@ -7491,6 +7503,8 @@
 				F8324DA9914DA98F186F4BF2E2C22A53 /* Products */,
 				1E3713E90B53F12A3620B5864057DA73 /* Targets Support Files */,
 			);
+			name = "Support Files";
+			path = "../../../ios/Pods/Target Support Files/RNSecureKeyStore";
 			sourceTree = "<group>";
 		};
 		D0440C20AC2F6BDD4E0A28ECB0625E24 /* RawText */ = {
@@ -8411,7 +8425,8 @@
 			children = (
 				FA5D1D1DAB4807FEEA08A11BCA206455 /* Yoga.podspec */,
 			);
-			name = Pod;
+			name = "Support Files";
+			path = "../../ios/Pods/Target Support Files/RNLocalize";
 			sourceTree = "<group>";
 		};
 		FE9AF19C569ED294B446F6CAD0082E04 /* TextInput */ = {
@@ -9277,6 +9292,14 @@
 				BBB9BBD85FD78B7232142ADE3AD15BD0 /* SDImageWebPCoder.h in Headers */,
 				76EBE6CD51BEEE22F89845516E86EBAA /* SDWebImageWebPCoder.h in Headers */,
 				0F2C29D27A4A81991C787404478AF099 /* UIImage+WebP.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C196B521B9FF902640A5FA601BC24044 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B1C27A884D5F18745A6601D4965ED8F3 /* ReactNativeConfig.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -10156,17 +10179,17 @@
 		};
 		B6422EB0A585557ED42A07B5D023BD98 /* react-native-config */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = C403D13E667501B08A211D4A311AC5F9 /* Build configuration list for PBXNativeTarget "react-native-config" */;
+			buildConfigurationList = BF9F65CEC1740AEADD6CDD8BA42E8534 /* Build configuration list for PBXNativeTarget "react-native-config" */;
 			buildPhases = (
-				A2448E0EB6D29A80BF5D40FFACFA1925 /* Headers */,
-				652D3C7DACB3C60043CAE1AA8439CB7C /* [CP-User] Config codegen */,
-				316E53BA497D804A0A9EB0FEE317476C /* Sources */,
-				54AB6AD9EAF31EAA1540CBC33187C33E /* Frameworks */,
+				C196B521B9FF902640A5FA601BC24044 /* Headers */,
+				C833B788E329DEECD7FE461EEFD5BD48 /* [CP-User] Config codegen */,
+				B83E6E946E92543CBEED973C1E7C29CC /* Sources */,
+				A1D77384F48D73CFF592553E1CDC57A3 /* Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				0FAD9ABE71FA3475DE1421850B4CD8E1 /* PBXTargetDependency */,
+				024447AF5398FB18A1A18A87E2A4D6D1 /* PBXTargetDependency */,
 			);
 			name = "react-native-config";
 			productName = "react-native-config";
@@ -10628,7 +10651,7 @@
 			shellPath = /bin/sh;
 			shellScript = "COMPATIBILITY_HEADER_PATH=\"${BUILT_PRODUCTS_DIR}/Swift Compatibility Header/${PRODUCT_MODULE_NAME}-Swift.h\"\nMODULE_MAP_PATH=\"${BUILT_PRODUCTS_DIR}/${PRODUCT_MODULE_NAME}.modulemap\"\n\nditto \"${DERIVED_SOURCES_DIR}/${PRODUCT_MODULE_NAME}-Swift.h\" \"${COMPATIBILITY_HEADER_PATH}\"\nditto \"${PODS_ROOT}/Headers/Public/react_native_track_player/react-native-track-player.modulemap\" \"${MODULE_MAP_PATH}\"\nditto \"${PODS_ROOT}/Headers/Public/react_native_track_player/react-native-track-player-umbrella.h\" \"${BUILT_PRODUCTS_DIR}\"\nprintf \"\\n\\nmodule ${PRODUCT_MODULE_NAME}.Swift {\\n  header \\\"${COMPATIBILITY_HEADER_PATH}\\\"\\n  requires objc\\n}\\n\" >> \"${MODULE_MAP_PATH}\"\n";
 		};
-		652D3C7DACB3C60043CAE1AA8439CB7C /* [CP-User] Config codegen */ = {
+		C833B788E329DEECD7FE461EEFD5BD48 /* [CP-User] Config codegen */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -10968,15 +10991,6 @@
 				BD09DEECB6F7F6CF4436824C9E689186 /* react-native-safe-area-context-dummy.m in Sources */,
 				4FED5EA3386624B7B68B0A4A39D4914B /* RNCSafeAreaView.m in Sources */,
 				ECE66264C55D9B7BAEBFF7A3AE7A36BC /* RNCSafeAreaViewManager.m in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		316E53BA497D804A0A9EB0FEE317476C /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				300DEE4AF27B7E331C6EDBCFC66D0285 /* react-native-config-dummy.m in Sources */,
-				A8666DCD80BF8CB9023C01824A1EDE65 /* ReactNativeConfig.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -11519,6 +11533,16 @@
 			files = (
 				7CFF4E0FEBA200B5700503BC74B74C25 /* react-native-background-downloader-dummy.m in Sources */,
 				90083D5F523E451EA5A5392D033831EA /* RNBackgroundDownloader.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B83E6E946E92543CBEED973C1E7C29CC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3C5241AC4B02B6E8BFA3679A42355977 /* GeneratedDotEnv.m in Sources */,
+				163AFBE63D00412EDADA98550DFB9C81 /* react-native-config-dummy.m in Sources */,
+				6DD66AD7D13E7ED8D608190D36187B82 /* ReactNativeConfig.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -16205,11 +16229,11 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		C403D13E667501B08A211D4A311AC5F9 /* Build configuration list for PBXNativeTarget "react-native-config" */ = {
+		BF9F65CEC1740AEADD6CDD8BA42E8534 /* Build configuration list for PBXNativeTarget "react-native-config" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				B6A41245FC26928B53E08E5BA40079D5 /* Debug */,
-				D47B6A741E7257E06FEAB0CC05922ED0 /* Release */,
+				37AB1A22DF7F354F7827F0EEE3D5EBA0 /* Debug */,
+				4E989BE403A6A48FEA6EE3C4E6602791 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

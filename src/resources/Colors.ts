@@ -25,5 +25,6 @@ export const Colors = {
   yellow: '#ffc107',
   opacity: 0.1,
   whiteOpaque: 'rgba(255, 255, 255, 0.85)',
-  blackOpaque: 'rgba(0, 0, 0, 0.7625)'
+  blackOpaque: 'rgba(0, 0, 0, 0.7625)',
+  skyBlue: '#3399cc'
 }

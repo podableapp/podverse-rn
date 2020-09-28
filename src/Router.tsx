@@ -56,7 +56,8 @@ const defaultNavigationOptions = ({ navigation }) => {
   }
 
   return {
-    headerStyle: { backgroundColor: PV.Colors.grayDarkest },
+    title: PV.Tabs.Podcasts.title,
+    headerStyle: { backgroundColor: PV.Colors.skyBlue },
     headerTintColor: darkTheme.text.color,
     headerTitleStyle: {
       fontSize,

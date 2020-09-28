@@ -31,7 +31,7 @@ type State = {
 export class AddPodcastByRSSScreen extends React.Component<Props, State> {
   static navigationOptions = ({ navigation }) => {
     return {
-      title: translate('Add by RSS'),
+      title: translate('Search public podcasts'),
       headerLeft: <NavDismissIcon handlePress={navigation.dismiss} />,
       headerRight: (
         <NavHeaderButtonText

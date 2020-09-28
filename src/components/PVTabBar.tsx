@@ -19,12 +19,12 @@ export const PVTabBar = (props: Props) => {
       {player && player.showMiniPlayer && player.nowPlayingItem && <MiniPlayer navigation={navigation} />}
       <BottomTabBar
         {...props}
-        activeTintColor={PV.Colors.blueLighter}
-        inactiveTintColor={PV.Colors.grayLight}
+        activeTintColor={PV.Colors.black}
+        inactiveTintColor={PV.Colors.red}
         labelStyle={{
           fontSize: PV.Fonts.sizes.tiny
         }}
-        style={darkTheme.tabbar}
+        style={[darkTheme.tabbar, { backgroundColor: PV.Colors.skyBlue }]}
       />
     </View>
   )
