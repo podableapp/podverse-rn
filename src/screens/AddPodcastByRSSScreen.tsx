@@ -128,15 +128,6 @@ export class AddPodcastByRSSScreen extends React.Component<Props, State> {
             <Text fontSizeLargestScale={PV.Fonts.largeSizes.sm} style={styles.text}>
               {translate('AddPodcastByRSSScreenText1')}
             </Text>
-            <Text fontSizeLargestScale={PV.Fonts.largeSizes.sm} style={styles.text}>
-              {translate('AddPodcastByRSSScreenText2')}
-            </Text>
-            <Text fontSizeLargestScale={PV.Fonts.largeSizes.sm} style={styles.text}>
-              {translate('AddPodcastByRSSScreenText3')}
-            </Text>
-            <Text fontSizeLargestScale={PV.Fonts.largeSizes.sm} style={styles.text}>
-              {translate('AddPodcastByRSSScreenText4')}
-            </Text>
             {!!PV.URLs.requestPodcast && (
               <TextLink
                 fontSizeLargestScale={PV.Fonts.largeSizes.sm}

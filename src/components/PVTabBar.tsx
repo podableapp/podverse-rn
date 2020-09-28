@@ -20,7 +20,7 @@ export const PVTabBar = (props: Props) => {
       <BottomTabBar
         {...props}
         activeTintColor={PV.Colors.black}
-        inactiveTintColor={PV.Colors.red}
+        inactiveTintColor={PV.Colors.white}
         labelStyle={{
           fontSize: PV.Fonts.sizes.tiny
         }}
