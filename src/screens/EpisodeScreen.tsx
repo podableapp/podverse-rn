@@ -2,7 +2,7 @@ import debounce from 'lodash/debounce'
 import { convertNowPlayingItemToEpisode, convertToNowPlayingItem } from 'podverse-shared'
 import { StyleSheet, View as RNView } from 'react-native'
 import { NavigationStackOptions } from 'react-navigation-stack'
-import React from 'reactn'
+import React, { useGlobal } from 'reactn'
 import {
   ActionSheet,
   ActivityIndicator,
@@ -65,7 +65,8 @@ export class EpisodeScreen extends React.Component<Props, State> {
               endingText={translate('shared using brandName')}
               episodeTitle={episodeTitle}
               podcastTitle={podcastTitle}
-              url={PV.URLs.episode + episodeId}
+              urlId={episodeId}
+              urlPath={PV.URLs.webPaths.episode}
             />
           )}
           <NavSearchIcon navigation={navigation} />
@@ -264,7 +265,7 @@ export class EpisodeScreen extends React.Component<Props, State> {
         hasZebraStripe={isOdd(index)}
         hideImage={true}
         startTime={item.startTime}
-        testId={'episode_screen_clip_item_' + index}
+        testID={'episode_screen_clip_item_' + index}
         title={item.title}
       />
     )
