@@ -51,7 +51,8 @@ export class PlaylistScreen extends React.Component<Props, State> {
           <NavShareIcon
             endingText={translate('shared using brandName')}
             playlistTitle={playlistTitle}
-            url={PV.URLs.playlist + playlistId}
+            urlId={playlistId}
+            urlPath={PV.URLs.webPaths.playlist}
           />
           <NavSearchIcon navigation={navigation} />
         </RNView>
