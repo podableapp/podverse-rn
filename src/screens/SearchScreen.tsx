@@ -262,7 +262,7 @@ export class SearchScreen extends React.Component<Props, State> {
             noResultsBottomActionText={PV.URLs.requestPodcast ? translate('Request Podcast') : ''}
             noResultsMessage={!this.state.searchBarText ? '' : translate('No podcasts found')}
             noResultsMiddleActionText={translate('Search public podcasts')}
-            noResultsTopActionText={!Config.DISABLE_QR_SCANNER ? translate('Scan Podable QR Code') : ''}
+            noResultsTopActionText={!Config.DISABLE_QR_SCANNER ? translate('Scan brandName QR Code') : ''}
             onEndReached={this._onEndReached}
             renderItem={this._renderPodcastItem}
           />
