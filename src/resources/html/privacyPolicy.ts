@@ -4,7 +4,7 @@ export const privacyPolicy = `
 
 <p>Effective date: 09/01/2020</p>
 
-<label>1. Introduction</label>
+<b>1. Introduction</b>
 
 <p>Podable Inc (&ldquo;us&rdquo;, &ldquo;we&rdquo;, or &ldquo;our&rdquo;) operates podable.co, the Podable web application and the Podable mobile application (hereinafter referred to as &ldquo;Service&rdquo;).</p>
 
@@ -14,7 +14,7 @@ export const privacyPolicy = `
 
 <p>Our Terms and Conditions (&ldquo;Terms&rdquo;) govern all use of our Service and together with the Privacy Policy constitutes your agreement with us (&ldquo;agreement&rdquo;).</p>
 
-<label>2. Definitions</label>
+<b>2. Definitions</b>
 
 <p>SERVICE means the podable.co website, the Podable web application and the Podable mobile application operated by Podable Inc</p>
 
@@ -32,11 +32,11 @@ export const privacyPolicy = `
 
 <p>THE USER is the individual using our Service. The User corresponds to the Data Subject, who is the subject of Personal Data.</p>
 
-<label>3. Information Collection and Use</label>
+<b>3. Information Collection and Use</b>
 
 <p>We collect several different types of information for various purposes to provide and improve our Service to you.</p>
 
-<label>4. Types of Data Collected</label>
+<b>4. Types of Data Collected</b>
 
 <p>Personal Data</p>
 
@@ -90,7 +90,7 @@ export const privacyPolicy = `
 
 <p>While using our Service, we may also collect the following information: sex, age, date of birth, place of birth, passport details, citizenship, registration at place of residence and actual address, telephone number (work, mobile), details of documents on education, qualification, professional training, employment agreements, non-disclosure agreements, information on bonuses and compensation, information on marital status, family members, social security (or other taxpayer identification) number, office location and other data.</p>
 
-<label>5. Use of Data</label>
+<b>5. Use of Data</b>
 
 <p>Podable Inc uses the collected data for various purposes:</p>
 
@@ -120,13 +120,13 @@ export const privacyPolicy = `
 
 <p>(m) for any other purpose with your consent.</p>
 
-<label>6. Retention of Data</label>
+<b>6. Retention of Data</b>
 
 <p>We will retain your Personal Data only for as long as is necessary for the purposes set out in this Privacy Policy. We will retain and use your Personal Data to the extent necessary to comply with our legal obligations (for example, if we are required to retain your data to comply with applicable laws), resolve disputes, and enforce our legal agreements and policies.</p>
 
 <p>We will also retain Usage Data for internal analysis purposes. Usage Data is generally retained for a shorter period, except when this data is used to strengthen the security or to improve the functionality of our Service, or we are legally obligated to retain this data for longer time periods.</p>
 
-<label>7. Transfer of Data</label>
+<b>7. Transfer of Data</b>
 
 <p>Your information, including Personal Data, may be transferred to &ndash; and maintained on &ndash; computers located outside of your state, province, country or other governmental jurisdiction where the data protection laws may differ from those of your jurisdiction.</p>
 
@@ -136,7 +136,7 @@ export const privacyPolicy = `
 
 <p>Podable Inc will take all the steps reasonably necessary to ensure that your data is treated securely and in accordance with this Privacy Policy and no transfer of your Personal Data will take place to an organisation or a country unless there are adequate controls in place including the security of your data and other personal information.</p>
 
-<label>8. Disclosure of Data</label>
+<b>8. Disclosure of Data</b>
 
 <p>We may disclose personal information that we collect, or you provide:</p>
 
@@ -160,11 +160,11 @@ export const privacyPolicy = `
 
 <p>(vii) if we believe disclosure is necessary or appropriate to protect the rights, property, or safety of the Company, our customers, or others.</p>
 
-<label>9. Security of Data</label>
+<b>9. Security of Data</b>
 
 <p>The security of your data is important to us but remember that no method of transmission over the Internet or method of electronic storage is 100% secure. While we strive to use commercially acceptable means to protect your Personal Data, we cannot guarantee its absolute security.</p>
 
-<label>10. Your Data Protection Rights Under General Data Protection Regulation (GDPR)</label>
+<b>10. Your Data Protection Rights Under General Data Protection Regulation (GDPR)</b>
 
 <p>If you are a resident of the European Union (EU) and European Economic Area (EEA), you have certain data protection rights, covered by GDPR. &ndash; See more at https://eur-lex.europa.eu/eli/reg/2016/679/oj</p>
 
@@ -190,7 +190,7 @@ export const privacyPolicy = `
 
 <p>You have the right to complain to a Data Protection Authority about our collection and use of your Personal Data. For more information, please contact your local data protection authority in the European Economic Area (EEA).</p>
 
-<label>11. Your Data Protection Rights under the California Privacy Protection Act (CalOPPA)</label>
+<b>11. Your Data Protection Rights under the California Privacy Protection Act (CalOPPA)</b>
 
 <p>CalOPPA is the first state law in the nation to require commercial websites and online services to post a privacy policy. The law&rsquo;s reach stretches well beyond California to require a person or company in the United States (and conceivable the world) that operates websites collecting personally identifiable information from California consumers to post a conspicuous privacy policy on its website stating exactly the information being collected and those individuals with whom it is being shared, and to comply with this policy. &ndash; See more at: https://consumercal.org/about-cfc/cfc-education-foundation/california-online-privacy-protection-act-caloppa-3/</p>
 
@@ -210,7 +210,7 @@ export const privacyPolicy = `
 
 <p>You can enable or disable Do Not Track by visiting the Preferences or Settings page of your web browser.</p>
 
-<label>12. Your Data Protection Rights under the California Consumer Privacy Act (CCPA)</label>
+<b>12. Your Data Protection Rights under the California Consumer Privacy Act (CCPA)</b>
 
 <p>If you are a California resident, you are entitled to learn what data we collect about you, ask to delete your data and not to sell (share) it. To exercise your data protection rights, you can make certain requests and ask us:</p>
 
@@ -244,13 +244,13 @@ export const privacyPolicy = `
 
 <p>Your data protection rights, described above, are covered by the CCPA, short for the California Consumer Privacy Act. To find out more, visit the official California Legislative Information website. The CCPA took effect on 01/01/2020.</p>
 
-<label>13. Service Providers</label>
+<b>13. Service Providers</b>
 
 <p>We may employ third party companies and individuals to facilitate our Service (&ldquo;Service Providers&rdquo;), provide Service on our behalf, perform Service-related services or assist us in analysing how our Service is used.</p>
 
 <p>These third parties have access to your Personal Data only to perform these tasks on our behalf and are obligated not to disclose or use it for any other purpose.</p>
 
-<label>14. Analytics</label>
+<b>14. Analytics</b>
 
 <p>We may use third-party Service Providers to monitor and analyze the use of our Service.</p>
 
@@ -266,7 +266,7 @@ export const privacyPolicy = `
 
 <p>For more information on what type of information Firebase collects, please visit the Google Privacy Terms web page: https://policies.google.com/privacy?hl=en</p>
 
-<label>15. CI/CD tools We may use third-party Service Providers to automate the development process of our Service.</label>
+<b>15. CI/CD tools We may use third-party Service Providers to automate the development process of our Service.</b>
 
 <p>GitHub GitHub is provided by GitHub, Inc.</p>
 
@@ -274,7 +274,7 @@ export const privacyPolicy = `
 
 <p>For more information on what data GitHub collects for what purpose and how the protection of the data is ensured, please visit GitHub Privacy Policy page: https://help.github.com/en/articles/github-privacy-statement.</p>
 
-<label>16. Behavioral Remarketing</label>
+<b>16. Behavioral Remarketing</b>
 
 <p>Podable Inc uses remarketing services to advertise on third party websites to you after you visited our Service. We and our third-party vendors use cookies to inform, optimise and serve ads based on your past visits to our Service.</p>
 
@@ -302,7 +302,7 @@ export const privacyPolicy = `
 
 <p>For more information on the privacy practices of Facebook, please visit Facebook's Data Policy: https://www.facebook.com/privacy/explanation</p>
 
-<label>17. Payments</label>
+<b>17. Payments</b>
 
 <p>We may provide paid products and/or services within Service. In that case, we use third-party services for payment processing (e.g. payment processors).</p>
 
@@ -314,19 +314,19 @@ export const privacyPolicy = `
 
 <p>Stripe: Their Privacy Policy can be viewed at: https://stripe.com/us/privacy</p>
 
-<label>18. Links to Other Sites</label>
+<b>18. Links to Other Sites</b>
 
 <p>Our Service may contain links to other sites that are not operated by us. If you click a third party link, you will be directed to that third party's site. We strongly advise you to review the Privacy Policy of every site you visit.</p>
 
 <p>We have no control over and assume no responsibility for the content, privacy policies or practices of any third party sites or services.</p>
 
-<label>19. Children's Privacy</label>
+<b>19. Children's Privacy</b>
 
 <p>Our Services are not intended for use by children under the age of 18 (&ldquo;Child&rdquo; or &ldquo;Children&rdquo;).</p>
 
 <p>We do not knowingly collect personally identifiable information from Children under 18. If you become aware that a Child has provided us with Personal Data, please contact us. If we become aware that we have collected Personal Data from Children without verification of parental consent, we take steps to remove that information from our servers.</p>
 
-<label>20. Changes to This Privacy Policy</label>
+<b>20. Changes to This Privacy Policy</b>
 
 <p>We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page.</p>
 
@@ -334,7 +334,7 @@ export const privacyPolicy = `
 
 <p>You are advised to review this Privacy Policy periodically for any changes. Changes to this Privacy Policy are effective when they are posted on this page.</p>
 
-<label>21. Contact Us</label>
+<b>21. Contact Us</b>
 
 <p>If you have any questions about this Privacy Policy, please contact us:</p>
 
