@@ -31,7 +31,7 @@ type State = {
 export class AddPodcastByRSSScreen extends React.Component<Props, State> {
   static navigationOptions = ({ navigation }) => {
     return {
-      title: translate('Add by RSS'),
+      title: translate('Search public podcasts'),
       headerLeft: <NavDismissIcon handlePress={navigation.dismiss} />,
       headerRight: (
         <NavHeaderButtonText
@@ -127,15 +127,6 @@ export class AddPodcastByRSSScreen extends React.Component<Props, State> {
             <Divider style={styles.divider} />
             <Text fontSizeLargestScale={PV.Fonts.largeSizes.sm} style={styles.text}>
               {translate('AddPodcastByRSSScreenText1')}
-            </Text>
-            <Text fontSizeLargestScale={PV.Fonts.largeSizes.sm} style={styles.text}>
-              {translate('AddPodcastByRSSScreenText2')}
-            </Text>
-            <Text fontSizeLargestScale={PV.Fonts.largeSizes.sm} style={styles.text}>
-              {translate('AddPodcastByRSSScreenText3')}
-            </Text>
-            <Text fontSizeLargestScale={PV.Fonts.largeSizes.sm} style={styles.text}>
-              {translate('AddPodcastByRSSScreenText4')}
             </Text>
             {!!PV.URLs.requestPodcast && (
               <TextLink

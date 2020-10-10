@@ -1,1 +1,0 @@
-Podcast app with clip-sharing, playlists, cross-platform syncing, and more!
