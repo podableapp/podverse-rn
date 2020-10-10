@@ -48,5 +48,8 @@ export const URLs = {
     }
   },
   webDefaultBaseUrl,
-  webPaths
+  webPaths,
+  officialWeb: {
+    about: 'https://www.podable.co/about_app.html'
+  }
 }
