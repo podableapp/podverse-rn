@@ -16,8 +16,7 @@ type State = {
 export class AboutScreen extends React.Component<Props, State> {
   static navigationOptions = ({ navigation }) => {
     return {
-      title: translate('About brandName'),
-      headerLeft: () => <NavDismissIcon handlePress={navigation.dismiss} />
+      title: translate('About brandName')
     }
   }
 
