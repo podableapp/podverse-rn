@@ -416,7 +416,7 @@ export class EpisodesScreen extends React.Component<Props, State> {
             noResultsMessage={
               noSubscribedPodcasts ? translate("You don't have any podcasts yet") : translate('No episodes found')
             }
-            noResultsTopActionText={noSubscribedPodcasts ? translate('Search') : ''}
+            noResultsTopActionText={noSubscribedPodcasts ? translate('Search public podcasts') : ''}
             onEndReached={this._onEndReached}
             onRefresh={this._onRefresh}
             renderHiddenItem={this._renderHiddenItem}

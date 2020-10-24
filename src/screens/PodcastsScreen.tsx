@@ -648,7 +648,7 @@ export class PodcastsScreen extends React.Component<Props, State> {
                   ? this._ListHeaderComponent
                   : null
               }
-              noResultsTopActionText={noSubscribedPodcasts ? translate('Search') : ''}
+              noResultsTopActionText={noSubscribedPodcasts ? translate('Search public podcasts') : ''}
               noResultsMessage={
                 noSubscribedPodcasts ? translate("You don't have any podcasts yet") : translate('No podcasts found')
               }

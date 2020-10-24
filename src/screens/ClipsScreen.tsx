@@ -431,7 +431,7 @@ export class ClipsScreen extends React.Component<Props, State> {
             ItemSeparatorComponent={this._ItemSeparatorComponent}
             keyExtractor={(item: any) => item.id}
             ListHeaderComponent={this._ListHeaderComponent}
-            noResultsTopActionText={noSubscribedPodcasts ? translate('Search') : ''}
+            noResultsTopActionText={noSubscribedPodcasts ? translate('Search public podcasts') : ''}
             noResultsMessage={
               noSubscribedPodcasts ? translate('You are not subscribed to any podcasts') : translate('No clips found')
             }
