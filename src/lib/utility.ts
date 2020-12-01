@@ -516,6 +516,8 @@ export const setCategoryQueryProperty = (queryFrom?: any, selectedCategory?: any
   }
 }
 
+export const isValidDate = (date: any) => date instanceof Date && !isNaN(date as any)
+
 export const isValidUrl = (str?: string) => {
   const regex = /(http|https):\/\/(\w+:{0,1}\w*)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%!\-\/]))?/
   return str ? regex.test(str) : false
@@ -527,4 +529,12 @@ export const testProps = (id: string) => {
 
 export const getUniqueArrayByKey = (arr: any[], key: string) => {
   return [...new Map(arr.map((item: any) => [item[key], item])).values()]
+}
+
+export const generateQueryParams = (query: any) => {
+  return Object.keys(query)
+    .map((key) => {
+      return `${key}=${query[key]}`
+    })
+    .join('&')
 }

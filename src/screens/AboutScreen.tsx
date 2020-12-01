@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native'
 import { WebView } from 'react-native-webview'
 import React from 'reactn'
-import { NavDismissIcon, View } from '../components'
+import { View } from '../components'
 import { translate } from '../lib/i18n'
 import { PV } from '../resources'
 

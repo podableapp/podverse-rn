@@ -4,7 +4,7 @@ import { HTMLScrollView, View } from '../components'
 import { translate } from '../lib/i18n'
 import { testProps } from '../lib/utility'
 import { PV } from '../resources'
-import { gaTrackPageView } from '../services/googleAnalytics'
+import { trackPageView } from '../services/tracking'
 
 type Props = {}
 
@@ -18,7 +18,7 @@ export class TermsOfServiceScreen extends React.Component<Props, State> {
   }
 
   componentDidMount() {
-    gaTrackPageView('/terms-of-service', 'Terms of Service Screen')
+    trackPageView('/terms', 'Terms of Service Screen')
   }
 
   showLeavingAppAlert = (url: string) => {
