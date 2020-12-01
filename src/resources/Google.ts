@@ -1,5 +1,5 @@
 export const Google = {
   analytics: {
-    trackingId: 'UA-87988078-2'
+    trackingId: 'UA-169356486-1'
   }
 }
