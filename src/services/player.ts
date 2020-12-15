@@ -185,7 +185,6 @@ const checkIfFileIsDownloaded = async (id: string, episodeMediaUrl: string) => {
 export const updateUserPlaybackPosition = async (itemOverride?: any) => {
   try {
     let item = itemOverride
-
     if (!item) {
       const currentTrackId = await PVTrackPlayer.getCurrentTrack()
       item = await getNowPlayingItemFromQueueOrHistoryByTrackId(currentTrackId)
@@ -261,6 +260,8 @@ export const loadItemAndPlayTrack = async (
 
   if (!item) return
 
+  TrackPlayer.stop()
+
   const lastPlayingItem = await getNowPlayingItem()
 
   // Episodes and clips must be already loaded in history
@@ -271,10 +272,25 @@ export const loadItemAndPlayTrack = async (
     await addOrUpdateHistoryItem(item)
   }
 
-  await TrackPlayer.reset()
-  const track = (await createTrack(item)) as Track
-  await TrackPlayer.add(track)
-  await syncPlayerWithQueue()
+  if (Platform.OS === 'ios') {
+    TrackPlayer.reset()
+    const track = (await createTrack(item)) as Track
+    await TrackPlayer.add(track)
+    await syncPlayerWithQueue()
+  } else {
+    const currentId = await TrackPlayer.getCurrentTrack()
+    if (currentId) {
+      await TrackPlayer.removeUpcomingTracks()
+      const track = (await createTrack(item)) as Track
+      await TrackPlayer.add(track)
+      await TrackPlayer.skipToNext()
+      await syncPlayerWithQueue()
+    } else {
+      const track = (await createTrack(item)) as Track
+      await TrackPlayer.add(track)
+      await syncPlayerWithQueue()
+    }
+  }
 
   if (shouldPlay) {
     if (item && !item.clipId) {
@@ -334,10 +350,14 @@ export const createTrack = async (item: NowPlayingItem) => {
     episodeMediaUrl = '',
     episodeTitle = 'untitled episode',
     podcastImageUrl,
+    podcastShrunkImageUrl,
     podcastTitle = 'untitled podcast'
   } = item
   const id = clipId || episodeId
   let track = null
+
+  const imageUrl = podcastShrunkImageUrl ? podcastShrunkImageUrl : podcastImageUrl
+
   if (id && episodeId) {
     const isDownloadedFile = await checkIfFileIsDownloaded(episodeId, episodeMediaUrl)
     const filePath = await getDownloadedFilePath(episodeId, episodeMediaUrl)
@@ -348,7 +368,7 @@ export const createTrack = async (item: NowPlayingItem) => {
         url: `file://${filePath}`,
         title: episodeTitle,
         artist: podcastTitle,
-        ...(podcastImageUrl ? { artwork: podcastImageUrl } : {})
+        ...(imageUrl ? { artwork: imageUrl } : {})
       }
     } else {
       track = {
@@ -356,7 +376,7 @@ export const createTrack = async (item: NowPlayingItem) => {
         url: convertURLToSecureProtocol(episodeMediaUrl),
         title: episodeTitle,
         artist: podcastTitle,
-        ...(podcastImageUrl ? { artwork: podcastImageUrl } : {})
+        ...(imageUrl ? { artwork: imageUrl } : {})
       }
     }
   }
@@ -395,7 +415,8 @@ export const movePlayerItemToNewPosition = async (id: string, insertBeforeId: st
 }
 
 export const setPlaybackPosition = async (position?: number) => {
-  if (position || position === 0 || (position && position > 0)) {
+  const currentId = await PVTrackPlayer.getCurrentTrack()
+  if (currentId && (position || position === 0 || (position && position > 0))) {
     await TrackPlayer.seekTo(position)
   }
 }
