@@ -22,7 +22,6 @@ import { alertIfNoNetworkConnection, hasValidNetworkConnection } from '../lib/ne
 import { getAppUserAgent, isOdd, setAppUserAgent, setCategoryQueryProperty, testProps } from '../lib/utility'
 import { PV } from '../resources'
 import { getEpisode } from '../services/episode'
-import { gaTrackPageView } from '../services/googleAnalytics'
 import { getAddByRSSPodcastsLocally } from '../services/parser'
 import {
   checkIdlePlayerState,
@@ -31,13 +30,14 @@ import {
   updateUserPlaybackPosition
 } from '../services/player'
 import { getPodcast, getPodcasts } from '../services/podcast'
+import { trackPageView } from '../services/tracking'
 import { getAuthUserInfo } from '../state/actions/auth'
 import { initDownloads, removeDownloadedPodcast } from '../state/actions/downloads'
-import { getAddByRSSPodcasts } from '../state/actions/parser'
 import {
   initializePlaybackSpeed,
   initializePlayerQueue,
   initPlayerState,
+  showMiniPlayer,
   updatePlaybackState,
   updatePlayerState
 } from '../state/actions/player'
@@ -66,6 +66,8 @@ type State = {
   showDataSettingsConfirmDialog: boolean
   showNoInternetConnectionMessage?: boolean
 }
+
+const testIDPrefix = 'podcasts_screen'
 
 // isInitialLoad is used to prevent rendering the PodcastsScreen components until
 // it knows which table header dropdown selectors to render (after the first query completes).
@@ -126,8 +128,6 @@ export class PodcastsScreen extends React.Component<Props, State> {
 
       Alert.alert(PV.Alerts.SOMETHING_WENT_WRONG.title, PV.Alerts.SOMETHING_WENT_WRONG.message, PV.Alerts.BUTTONS.OK)
     }
-
-    gaTrackPageView('/podcasts', 'Podcasts Screen')
   }
 
   componentWillUnmount() {
@@ -146,6 +146,7 @@ export class PodcastsScreen extends React.Component<Props, State> {
         if (!lastItem || (lastItem && currentItem && currentItem.episodeId !== lastItem.episodeId)) {
           await updatePlayerState(currentItem)
           updateUserPlaybackPosition()
+          showMiniPlayer()
         }
       }
 
@@ -158,7 +159,8 @@ export class PodcastsScreen extends React.Component<Props, State> {
       // I don't think this issue is happening on Android, so we're not using this workaround on Android.
       const isIdle = await checkIdlePlayerState()
       if (Platform.OS === 'ios' && isIdle) {
-        await initializePlayerQueue()
+        const skipRestoreItem = true
+        await initializePlayerQueue(skipRestoreItem)
       }
     }
 
@@ -306,6 +308,7 @@ export class PodcastsScreen extends React.Component<Props, State> {
     await initDownloads()
     await initializePlayerQueue()
     await initializePlaybackSpeed()
+    trackPageView('/podcasts', 'Podcasts Screen')
   }
 
   // querySortOverride is only used in _initializeScreenData, and it determines
@@ -462,15 +465,15 @@ export class PodcastsScreen extends React.Component<Props, State> {
           })
         }
         podcastImageUrl={item.shrunkImageUrl || item.imageUrl}
-        podcastTitle={item.title}
+        {...(item.title ? { podcastTitle: item.title } : {})}
         showAutoDownload={true}
         showDownloadCount={true}
-        testId={'podcasts_screen_podcast_item_' + index}
+        testID={`${testIDPrefix}_podcast_item_${index}`}
       />
     )
   }
 
-  _renderHiddenItem = ({ item }, rowMap) => {
+  _renderHiddenItem = ({ item, index }, rowMap) => {
     const { queryFrom } = this.state
     const buttonText = queryFrom === PV.Filters._downloadedKey ? translate('Delete') : translate('Unsubscribe')
 
@@ -478,6 +481,7 @@ export class PodcastsScreen extends React.Component<Props, State> {
       <SwipeRowBack
         isLoading={this.state.isUnsubscribing}
         onPress={() => this._handleHiddenItemPress(item.id, item.addByRSSPodcastFeedUrl, rowMap)}
+        testID={`${testIDPrefix}_podcast_item_${index}`}
         text={buttonText}
       />
     )
@@ -563,6 +567,18 @@ export class PodcastsScreen extends React.Component<Props, State> {
     this.props.navigation.navigate(PV.RouteNames.SearchScreen)
   }
 
+  _handleScanQRCodeNavigation = () => {
+    this.props.navigation.navigate(PV.RouteNames.ScanQRCodeScreen)
+  }
+
+  _handleNoResultsTopAction = () => {
+    if (Config.DEFAULT_ACTION_NO_SUBSCRIBED_PODCASTS === PV.Keys.DEFAULT_ACTION_BUTTON_SCAN_QR_CODE) {
+      this._handleScanQRCodeNavigation()
+    } else {
+      this._handleSearchNavigation()
+    }
+  }
+
   _handleDataSettingsWifiOnly = () => {
     AsyncStorage.setItem(PV.Keys.DOWNLOADING_WIFI_ONLY, 'TRUE')
     this.setState({ showDataSettingsConfirmDialog: false })
@@ -609,8 +625,13 @@ export class PodcastsScreen extends React.Component<Props, State> {
     const showOfflineMessage =
       offlineModeEnabled && queryFrom !== PV.Filters._downloadedKey && queryFrom !== PV.Filters._subscribedKey
 
+    const defaultNoSubscribedPodcastsMessage =
+      Config.DEFAULT_ACTION_NO_SUBSCRIBED_PODCASTS === PV.Keys.DEFAULT_ACTION_BUTTON_SCAN_QR_CODE
+        ? translate('Scan QR Code')
+        : translate('Search')
+
     return (
-      <View style={styles.view} {...testProps('podcasts_screen_view')}>
+      <View style={styles.view} {...testProps(`${testIDPrefix}_view`)}>
         <RNView style={{ flex: 1 }}>
           <PlayerEvents />
           <TableSectionSelectors
@@ -620,6 +641,7 @@ export class PodcastsScreen extends React.Component<Props, State> {
             selectedLeftItemKey={queryFrom}
             selectedRightItemKey={querySort}
             screenName='PodcastsScreen'
+            testID={testIDPrefix}
           />
           {queryFrom === PV.Filters._categoryKey && (
             <TableSectionSelectors
@@ -630,6 +652,7 @@ export class PodcastsScreen extends React.Component<Props, State> {
               isBottomBar={true}
               isCategories={true}
               screenName='PodcastsScreen'
+              testID={`${testIDPrefix}_sub`}
             />
           )}
           {isLoading && <ActivityIndicator />}
@@ -639,8 +662,9 @@ export class PodcastsScreen extends React.Component<Props, State> {
               dataTotalCount={flatListDataTotalCount}
               disableLeftSwipe={queryFrom !== PV.Filters._subscribedKey && queryFrom !== PV.Filters._downloadedKey}
               extraData={flatListData}
-              handleNoResultsTopAction={this._handleSearchNavigation}
+              handleNoResultsTopAction={this._handleNoResultsTopAction}
               keyExtractor={(item: any) => item.id}
+              isCompleteData={queryFrom === PV.Filters._subscribedKey || queryFrom === PV.Filters._downloadedKey}
               isLoadingMore={isLoadingMore}
               isRefreshing={isRefreshing}
               ItemSeparatorComponent={this._ItemSeparatorComponent}
@@ -649,11 +673,9 @@ export class PodcastsScreen extends React.Component<Props, State> {
                   ? this._ListHeaderComponent
                   : null
               }
-              noResultsTopActionText={noSubscribedPodcasts ? translate('Search') : ''}
+              noResultsTopActionText={noSubscribedPodcasts ? defaultNoSubscribedPodcastsMessage : ''}
               noResultsMessage={
-                noSubscribedPodcasts
-                  ? translate('You are not subscribed to any podcasts')
-                  : translate('No podcasts found')
+                noSubscribedPodcasts ? translate("You don't have any podcasts yet") : translate('No podcasts found')
               }
               onEndReached={this._onEndReached}
               onRefresh={queryFrom === PV.Filters._subscribedKey ? this._onRefresh : null}
@@ -666,7 +688,11 @@ export class PodcastsScreen extends React.Component<Props, State> {
         <Dialog.Container visible={showDataSettingsConfirmDialog}>
           <Dialog.Title>Data Settings</Dialog.Title>
           <Dialog.Description>Do you want to allow downloading episodes with your data plan?</Dialog.Description>
-          <Dialog.Button label={translate('No Wifi Only')} onPress={this._handleDataSettingsWifiOnly} />
+          <Dialog.Button
+            label={translate('No Wifi Only')}
+            onPress={this._handleDataSettingsWifiOnly}
+            {...testProps('alert_no_wifi_only')}
+          />
           <Dialog.Button
             label={translate('Yes Allow Data')}
             onPress={this._handleDataSettingsAllowData}
@@ -686,28 +712,22 @@ export class PodcastsScreen extends React.Component<Props, State> {
 
   _queryAllPodcasts = async (sort: string | null, page: number = 1) => {
     const { searchBarText: searchTitle } = this.state
-    const results = await getPodcasts(
-      {
-        sort,
-        page,
-        ...(searchTitle ? { searchTitle } : {})
-      },
-      this.global.settings.nsfwMode
-    )
+    const results = await getPodcasts({
+      sort,
+      page,
+      ...(searchTitle ? { searchTitle } : {})
+    })
     return results
   }
 
   _queryPodcastsByCategory = async (categoryId?: string | null, sort?: string | null, page: number = 1) => {
     const { searchBarText: searchTitle } = this.state
-    const results = await getPodcasts(
-      {
-        categories: categoryId,
-        sort,
-        page,
-        ...(searchTitle ? { searchTitle } : {})
-      },
-      this.global.settings.nsfwMode
-    )
+    const results = await getPodcasts({
+      categories: categoryId,
+      sort,
+      page,
+      ...(searchTitle ? { searchTitle } : {})
+    })
     return results
   }
 
@@ -735,7 +755,6 @@ export class PodcastsScreen extends React.Component<Props, State> {
         selectedSubCategory
       } = prevState
       const { settings } = this.global
-      const { nsfwMode } = settings
 
       const hasInternetConnection = await hasValidNetworkConnection()
 
@@ -777,14 +796,11 @@ export class PodcastsScreen extends React.Component<Props, State> {
       } else if (PV.FilterOptions.screenFilters.PodcastsScreen.sort.some((option) => option === filterKey)) {
         newState.showNoInternetConnectionMessage = !hasInternetConnection
 
-        const results = await getPodcasts(
-          {
-            ...setCategoryQueryProperty(queryFrom, selectedCategory, selectedSubCategory),
-            sort: filterKey,
-            ...(searchTitle ? { searchTitle } : {})
-          },
-          nsfwMode
-        )
+        const results = await getPodcasts({
+          ...setCategoryQueryProperty(queryFrom, selectedCategory, selectedSubCategory),
+          sort: filterKey,
+          ...(searchTitle ? { searchTitle } : {})
+        })
         newState.flatListData = results[0]
         newState.endOfResultsReached = newState.flatListData.length >= results[1]
         newState.flatListDataTotalCount = results[1]

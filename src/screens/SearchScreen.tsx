@@ -16,10 +16,10 @@ import {
 import { translate } from '../lib/i18n'
 import { navigateToPodcastScreenWithPodcast } from '../lib/navigate'
 import { alertIfNoNetworkConnection } from '../lib/network'
-import { generateAuthorsText, isOdd, safelyUnwrapNestedVariable, testProps } from '../lib/utility'
+import { isOdd, safelyUnwrapNestedVariable, testProps } from '../lib/utility'
 import { PV } from '../resources'
-import { gaTrackPageView } from '../services/googleAnalytics'
 import { getPodcasts } from '../services/podcast'
+import { trackPageView } from '../services/tracking'
 import { toggleSubscribeToPodcast } from '../state/actions/podcast'
 import { core } from '../styles'
 
@@ -41,6 +41,8 @@ type State = {
   selectedPodcast?: any
   showActionSheet: boolean
 }
+
+const testIDPrefix = 'search_screen'
 
 export class SearchScreen extends React.Component<Props, State> {
   static navigationOptions = ({ navigation }) => {
@@ -70,7 +72,7 @@ export class SearchScreen extends React.Component<Props, State> {
   }
 
   componentDidMount() {
-    gaTrackPageView('/search', 'Search Screen')
+    trackPageView('/search', 'Search Screen')
   }
 
   _handleSearchBarClear = (text: string) => {
@@ -170,9 +172,9 @@ export class SearchScreen extends React.Component<Props, State> {
       id={item.id}
       lastEpisodePubDate={item.lastEpisodePubDate}
       onPress={() => this._handleMorePress(item)}
-      podcastAuthors={generateAuthorsText(item.authors)}
       podcastImageUrl={item.shrunkImageUrl || item.imageUrl}
-      podcastTitle={item.title}
+      {...(item.title ? { podcastTitle: item.title } : {})}
+      testID={`${testIDPrefix}_podcast_item_${index}`}
     />
   )
 
@@ -199,7 +201,7 @@ export class SearchScreen extends React.Component<Props, State> {
       },
       {
         key: 'about',
-        text: translate('About'),
+        text: translate('About brandName'),
         onPress: () => this._handleNavigationPress(selectedPodcast, _aboutPodcastKey)
       }
     ]
@@ -210,7 +212,7 @@ export class SearchScreen extends React.Component<Props, State> {
     if (wasAlerted) return
 
     try {
-      await toggleSubscribeToPodcast(id, this.global)
+      await toggleSubscribeToPodcast(id)
     } catch (error) {
       Alert.alert(PV.Alerts.SOMETHING_WENT_WRONG.title, PV.Alerts.SOMETHING_WENT_WRONG.message, PV.Alerts.BUTTONS.OK)
     }
@@ -244,6 +246,7 @@ export class SearchScreen extends React.Component<Props, State> {
           onChangeText={this._handleSearchBarTextChange}
           onClear={this._handleSearchBarClear}
           placeholder={translate('search')}
+          testID={testIDPrefix}
           value={searchBarText}
         />
         <Divider />
@@ -260,9 +263,9 @@ export class SearchScreen extends React.Component<Props, State> {
             ItemSeparatorComponent={this._ItemSeparatorComponent}
             keyExtractor={(item: any) => item.id}
             noResultsBottomActionText={PV.URLs.requestPodcast ? translate('Request Podcast') : ''}
-            noResultsMessage={translate('No podcasts found')}
+            noResultsMessage={!this.state.searchBarText ? '' : translate('No podcasts found')}
             noResultsMiddleActionText={translate('Add by RSS')}
-            noResultsTopActionText={!Config.DISABLE_QR_SCANNER ? translate('Scan RSS Feed QR Code') : ''}
+            noResultsTopActionText={!Config.DISABLE_QR_SCANNER ? translate('Scan brandName QR Code') : ''}
             onEndReached={this._onEndReached}
             renderItem={this._renderPodcastItem}
           />
@@ -272,6 +275,7 @@ export class SearchScreen extends React.Component<Props, State> {
           handleCancelPress={this._handleCancelPress}
           items={this._moreButtons()}
           showModal={showActionSheet}
+          testID={testIDPrefix}
         />
       </View>
     )
@@ -290,14 +294,11 @@ export class SearchScreen extends React.Component<Props, State> {
     if (wasAlerted) return newState
 
     try {
-      const results = await getPodcasts(
-        {
-          page,
-          ...(searchType === _podcastByTitle ? { searchTitle: searchBarText } : {}),
-          ...(searchType === _podcastByHost ? { searchAuthor: searchBarText } : {})
-        },
-        this.global.settings.nsfwMode
-      )
+      const results = await getPodcasts({
+        page,
+        ...(searchType === _podcastByTitle ? { searchTitle: searchBarText } : {}),
+        ...(searchType === _podcastByHost ? { searchAuthor: searchBarText } : {})
+      })
 
       const newFlatListData = [...flatListData, ...results[0]]
 

@@ -1,6 +1,7 @@
 import React from 'react'
 import { ActivityIndicator, StyleSheet, TouchableWithoutFeedback, View } from 'react-native'
 import { useGlobal } from 'reactn'
+import { testProps } from '../lib/utility'
 import { PV } from '../resources'
 import { Icon } from './'
 
@@ -8,10 +9,11 @@ type Props = {
   handleToggleSubscribe: any
   isSubscribed?: boolean
   isSubscribing?: boolean
+  testID: string
 }
 
 export const SubscribeButton = (props: Props) => {
-  const { handleToggleSubscribe, isSubscribed, isSubscribing } = props
+  const { handleToggleSubscribe, isSubscribed, isSubscribing, testID } = props
   const [globalTheme] = useGlobal('globalTheme')
 
   return (
@@ -22,7 +24,8 @@ export const SubscribeButton = (props: Props) => {
         right: 8,
         top: 4
       }}
-      onPress={handleToggleSubscribe}>
+      onPress={handleToggleSubscribe}
+      {...(testID ? testProps(`${testID}_subscribe_button`) : {})}>
       <View style={styles.buttonView}>
         {isSubscribing && (
           <View style={styles.activityIndicator}>
@@ -32,9 +35,9 @@ export const SubscribeButton = (props: Props) => {
         {!isSubscribing && (
           <View>
             {isSubscribed ? (
-              <Icon name='star' size={PV.Icons.NAV} solid={true} />
+              <Icon name='star' size={PV.Icons.NAV} solid={true} testID={`${testID}_is_subscribed`} />
             ) : (
-              <Icon name='star' size={PV.Icons.NAV} />
+              <Icon name='star' size={PV.Icons.NAV} testID={`${testID}_is_not_subscribed`} />
             )}
           </View>
         )}

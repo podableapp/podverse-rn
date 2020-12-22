@@ -22,7 +22,7 @@ export const getPodcast = async (id: string) => {
   }
 }
 
-export const getPodcasts = async (query: any = {}, nsfwMode?: boolean) => {
+export const getPodcasts = async (query: any = {}) => {
   const searchAuthor = query.searchAuthor ? encodeURIComponent(query.searchAuthor) : ''
   const searchTitle = query.searchTitle ? encodeURIComponent(query.searchTitle) : ''
 
@@ -40,13 +40,10 @@ export const getPodcasts = async (query: any = {}, nsfwMode?: boolean) => {
     filteredQuery.podcastId = query.podcastIds ? query.podcastIds.join(',') : ['no-results']
   }
 
-  const response = await request(
-    {
-      endpoint: '/podcast',
-      query: filteredQuery
-    },
-    nsfwMode
-  )
+  const response = await request({
+    endpoint: '/podcast',
+    query: filteredQuery
+  })
 
   return response && response.data
 }
@@ -136,19 +133,16 @@ export const getSubscribedPodcastsLocally = async () => {
   }
 }
 
-export const searchPodcasts = async (title?: string, author?: string, nsfwMode?: boolean) => {
-  const response = await request(
-    {
-      endpoint: '/podcast',
-      query: {
-        sort: 'alphabetical',
-        ...(title ? { title } : {}),
-        ...(author ? { author } : {}),
-        page: 1
-      }
-    },
-    nsfwMode
-  )
+export const searchPodcasts = async (title?: string, author?: string) => {
+  const response = await request({
+    endpoint: '/podcast',
+    query: {
+      sort: 'alphabetical',
+      ...(title ? { title } : {}),
+      ...(author ? { author } : {}),
+      page: 1
+    }
+  })
 
   return response && response.data
 }
@@ -248,8 +242,8 @@ const toggleSubscribeToPodcastOnServer = async (id: string) => {
 
 export const sortPodcastArrayAlphabetically = (podcasts: any[]) => {
   podcasts.sort((a, b) => {
-    let titleA = a.sortableTitle || a.title || ''
-    let titleB = b.sortableTitle || b.title || ''
+    let titleA = (a && (a.sortableTitle || a.title)) || ''
+    let titleB = (b && (b.sortableTitle || b.title)) || ''
     titleA = titleA
       .toLowerCase()
       .trim()

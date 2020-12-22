@@ -21,19 +21,11 @@ import {
 import { downloadEpisode } from '../lib/downloader'
 import { translate } from '../lib/i18n'
 import { alertIfNoNetworkConnection, hasValidNetworkConnection } from '../lib/network'
-import {
-  generateAuthorsText,
-  generateCategoriesText,
-  isOdd,
-  readableDate,
-  safelyUnwrapNestedVariable,
-  testProps
-} from '../lib/utility'
+import { isOdd, safelyUnwrapNestedVariable, testProps } from '../lib/utility'
 import { PV } from '../resources'
-import { gaTrackPageView } from '../services/googleAnalytics'
 import { deleteMediaRef } from '../services/mediaRef'
-import { loadItemAndPlayTrack } from '../services/player'
 import { getPodcasts } from '../services/podcast'
+import { trackPageView } from '../services/tracking'
 import {
   getLoggedInUserMediaRefs,
   getLoggedInUserPlaylists,
@@ -41,6 +33,7 @@ import {
   getUserPlaylists
 } from '../services/user'
 import { getAuthUserInfo } from '../state/actions/auth'
+import { loadItemAndPlayTrack } from '../state/actions/player'
 import { getPublicUser, toggleSubscribeToUser } from '../state/actions/user'
 import { core } from '../styles'
 
@@ -69,6 +62,8 @@ type State = {
   userId?: string
 }
 
+const testIDPrefix = 'profile_screen'
+
 export class ProfileScreen extends React.Component<Props, State> {
   static navigationOptions = ({ navigation }) => {
     const userId = navigation.getParam('userId')
@@ -80,7 +75,9 @@ export class ProfileScreen extends React.Component<Props, State> {
       title: isMyProfile ? translate('My Profile') : translate('Profile'),
       headerRight: (
         <RNView style={core.row}>
-          {userIsPublic && userId && <NavShareIcon profileName={userName} url={PV.URLs.profile + userId} />}
+          {userIsPublic && userId && (
+            <NavShareIcon profileName={userName} urlId={userId} urlPath={PV.URLs.webPaths.profile} />
+          )}
           <NavSearchIcon navigation={navigation} />
         </RNView>
       )
@@ -133,7 +130,7 @@ export class ProfileScreen extends React.Component<Props, State> {
     const { userId } = this.state
     this._initializeScreenData()
     const idPath = userId ? userId : 'user-not-logged-in'
-    gaTrackPageView('/profile/' + idPath, 'Profile Screen')
+    trackPageView('/profile/' + idPath, 'Profile Screen')
   }
 
   async _initializeScreenData() {
@@ -199,7 +196,7 @@ export class ProfileScreen extends React.Component<Props, State> {
           } as State
 
           try {
-            const { profileFlatListData } = await getPublicUser(userId, this.global)
+            const { profileFlatListData } = await getPublicUser(userId)
             newState.flatListData = profileFlatListData
             newState = await this._queryData(queryFrom, 1)
           } catch (error) {
@@ -413,10 +410,9 @@ export class ProfileScreen extends React.Component<Props, State> {
           id={item.id}
           lastEpisodePubDate={item.lastEpisodePubDate}
           onPress={() => this._handlePodcastPress(item)}
-          podcastAuthors={generateAuthorsText(item.authors)}
-          podcastCategories={generateCategoriesText(item.categories)}
           podcastImageUrl={item.shrunkImageUrl || item.imageUrl}
-          podcastTitle={item.title}
+          {...(item.title ? { podcastTitle: item.title } : {})}
+          testID={`${testIDPrefix}_podcast_item_${index}`}
         />
       )
     } else if (queryFrom === PV.Filters._clipsKey) {
@@ -424,15 +420,18 @@ export class ProfileScreen extends React.Component<Props, State> {
         <ClipTableCell
           endTime={item.endTime}
           episodeId={item.episode.id}
-          episodePubDate={readableDate(item.episode.pubDate)}
-          episodeTitle={item.episode.title}
+          {...(item.episode.pubDate ? { episodePubDate: item.episode.pubDate } : {})}
+          {...(item.episode.title ? { episodeTitle: item.episode.title } : {})}
           handleMorePress={() => this._handleMorePress(convertToNowPlayingItem(item, null, null))}
           handleNavigationPress={() => this._handleNavigationPress(convertToNowPlayingItem(item, null, null))}
           hasZebraStripe={isOdd(index)}
           podcastImageUrl={item.episode.podcast.shrunkImageUrl || item.episode.podcast.imageUrl}
-          podcastTitle={item.episode.podcast.title}
+          {...(item.episode.podcast.title ? { podcastTitle: item.episode.podcast.title } : {})}
+          showEpisodeInfo={true}
+          showPodcastTitle={true}
           startTime={item.startTime}
-          title={item.title}
+          testID={`${testIDPrefix}_clip_item_${index}`}
+          {...(item.title ? { title: item.title } : {})}
         />
       ) : (
         <></>
@@ -443,6 +442,7 @@ export class ProfileScreen extends React.Component<Props, State> {
           hasZebraStripe={isOdd(index)}
           itemCount={item.itemCount}
           onPress={() => this._handlePlaylistPress(item)}
+          testID={`${testIDPrefix}_profile_item_${index}`}
           title={item.title}
         />
       )
@@ -511,6 +511,7 @@ export class ProfileScreen extends React.Component<Props, State> {
               isSubscribed={isSubscribed}
               isSubscribing={isSubscribing}
               name={(user && user.name) || translate('anonymous')}
+              testID={testIDPrefix}
             />
             <TableSectionSelectors
               handleSelectLeftItem={this.selectLeftItem}
@@ -519,6 +520,7 @@ export class ProfileScreen extends React.Component<Props, State> {
               screenName='ProfileScreen'
               selectedLeftItemKey={queryFrom}
               selectedRightItemKey={querySort}
+              testID={testIDPrefix}
             />
             {isLoading && <ActivityIndicator />}
             {!isLoading && queryFrom && flatListData && (
@@ -554,12 +556,21 @@ export class ProfileScreen extends React.Component<Props, State> {
                 }
               }}
               showModal={showActionSheet}
+              testID={testIDPrefix}
             />
             <Dialog.Container visible={showDeleteConfirmDialog}>
               <Dialog.Title>Delete Clip</Dialog.Title>
               <Dialog.Description>Are you sure?</Dialog.Description>
-              <Dialog.Button label={translate('Cancel')} onPress={this._cancelDeleteMediaRef} />
-              <Dialog.Button label={translate('Delete')} onPress={this._deleteMediaRef} />
+              <Dialog.Button
+                label={translate('Cancel')}
+                onPress={this._cancelDeleteMediaRef}
+                {...testProps('dialog_delete_clip_cancel')}
+              />
+              <Dialog.Button
+                label={translate('Delete')}
+                onPress={this._deleteMediaRef}
+                {...testProps('dialog_delete_clip_delete')}
+              />
             </Dialog.Container>
           </View>
         )}
@@ -578,7 +589,7 @@ export class ProfileScreen extends React.Component<Props, State> {
 
       let results = [[], 0]
       if (this.global.profile.user.subscribedPodcastIds.length > 0) {
-        results = await getPodcasts(query, this.global.settings.nsfwMode)
+        results = await getPodcasts(query)
       }
 
       setGlobal(
@@ -601,8 +612,6 @@ export class ProfileScreen extends React.Component<Props, State> {
   _queryMediaRefs = async (newState: any, page: number = 1, sort?: string | null) => {
     return new Promise(async (resolve, reject) => {
       const { flatListData, userId } = this.state
-      const { settings } = this.global
-      const { nsfwMode } = settings
       const query = { page }
       const { id } = this.global.session.userInfo
       const isLoggedInUserProfile = userId === id
@@ -612,7 +621,7 @@ export class ProfileScreen extends React.Component<Props, State> {
       if (isLoggedInUserProfile) {
         results = await getLoggedInUserMediaRefs(query)
       } else {
-        results = await getUserMediaRefs(this.global.profile.user.id, query, nsfwMode)
+        results = await getUserMediaRefs(this.global.profile.user.id, query)
       }
 
       setGlobal(

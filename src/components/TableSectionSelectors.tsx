@@ -15,6 +15,7 @@ type Props = {
   hideRightItemWhileLoading?: boolean
   includeChronological?: boolean
   isAddByRSSPodcastFeedUrl?: boolean
+  isSortLimitQueries?: boolean
   isBottomBar?: boolean
   isCategories?: boolean
   isLoggedIn?: boolean
@@ -22,7 +23,17 @@ type Props = {
   selectedLeftItemKey: string | null
   selectedRightItemKey?: string | null
   screenName: string
+  testID: string
 }
+
+const filterAddByRSSRightItems = (screenName: string, isAddByRSSPodcastFeedUrl: boolean, isSortLimitQueries: boolean) =>
+  PV.FilterOptions.sortItems.filter((sortKey: any) => {
+    return isAddByRSSPodcastFeedUrl
+      ? PV.FilterOptions.screenFilters[screenName].addByPodcastRSSFeedURLSort.includes(sortKey.value)
+      : isSortLimitQueries
+      ? PV.FilterOptions.screenFilters[screenName].sortLimitQueries.includes(sortKey.value)
+      : PV.FilterOptions.screenFilters[screenName].sort.includes(sortKey.value)
+  })
 
 export const TableSectionSelectors = (props: Props) => {
   const [globalTheme] = useGlobal('globalTheme')
@@ -38,13 +49,15 @@ export const TableSectionSelectors = (props: Props) => {
     hideRightItemWhileLoading,
     includeChronological = false,
     isAddByRSSPodcastFeedUrl = false,
+    isSortLimitQueries = false,
     isBottomBar = false,
     isCategories = false,
     isLoggedIn,
     isTransparent,
     selectedLeftItemKey,
     selectedRightItemKey,
-    screenName
+    screenName,
+    testID
   } = props
 
   const handleInitialRender = () => {
@@ -64,9 +77,7 @@ export const TableSectionSelectors = (props: Props) => {
         })
       }
 
-      rightItems = PV.FilterOptions.sortItems.filter((sortKey: any) => {
-        return PV.FilterOptions.screenFilters[screenName].sort.includes(sortKey.value)
-      })
+      rightItems = filterAddByRSSRightItems(screenName, !!isAddByRSSPodcastFeedUrl, isSortLimitQueries)
     } else {
       // Bottom bar
       const newleftItems = PV.FilterOptions.screenFilters[screenName].sublist
@@ -115,9 +126,7 @@ export const TableSectionSelectors = (props: Props) => {
     const screen = PV.FilterOptions.screenFilters[screenName]
     if (!screen.hideSort.includes(selectedLeftItemKey)) {
       if (!isBottomBar) {
-        rightItems = PV.FilterOptions.sortItems.filter((sortKey: any) => {
-          return PV.FilterOptions.screenFilters[screenName].sort.includes(sortKey.value)
-        })
+        rightItems = filterAddByRSSRightItems(screenName, !!isAddByRSSPodcastFeedUrl, isSortLimitQueries)
 
         if (screen.includeAlphabetical && screen.includeAlphabetical.includes(selectedLeftItemKey)) {
           rightItems.unshift(PV.FilterOptions.items.sortAlphabeticalItem)
@@ -177,6 +186,7 @@ export const TableSectionSelectors = (props: Props) => {
               placeholder={defaultPlaceholder}
               style={hidePickerIconOnAndroidSectionSelector(isDarkMode)}
               useNativeAndroidPickerStyle={false}
+              touchableWrapperProps={{ testID: `${testID}_picker_select_left` }}
               value={selectedLeftItemKey}>
               <View style={styles.tableSectionHeaderButton}>
                 <Text
@@ -198,6 +208,7 @@ export const TableSectionSelectors = (props: Props) => {
                 onValueChange={handleSelectRightItem}
                 placeholder={defaultPlaceholder}
                 style={hidePickerIconOnAndroidSectionSelector(isDarkMode)}
+                touchableWrapperProps={{ testID: `${testID}_picker_select_right` }}
                 useNativeAndroidPickerStyle={false}
                 value={selectedRightItemKey}>
                 <View style={styles.tableSectionHeaderButton}>

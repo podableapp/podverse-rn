@@ -2,8 +2,10 @@ import AsyncStorage from '@react-native-community/async-storage'
 import NetInfo, { NetInfoState, NetInfoSubscription } from '@react-native-community/netinfo'
 import React, { Component } from 'react'
 import { Image, Platform, StatusBar, View, YellowBox } from 'react-native'
+import Config from 'react-native-config'
 import { getFontScale } from 'react-native-device-info'
 import 'react-native-gesture-handler'
+import { initialWindowMetrics, SafeAreaProvider } from 'react-native-safe-area-context'
 import TrackPlayer from 'react-native-track-player'
 import { setGlobal } from 'reactn'
 import { OverlayAlert } from './src/components'
@@ -47,9 +49,16 @@ class App extends Component<Props, State> {
 
   async componentDidMount() {
     TrackPlayer.registerPlaybackService(() => require('./src/services/playerEvents'))
+    StatusBar.setBarStyle('dark-content')
     const darkModeEnabled = await AsyncStorage.getItem(PV.Keys.DARK_MODE_ENABLED)
-    StatusBar.setBarStyle('light-content')
-    await this.setupGlobalState(darkModeEnabled === 'TRUE' || darkModeEnabled === null ? darkTheme : lightTheme)
+    let globalTheme = darkTheme
+    if (darkModeEnabled === null) {
+      globalTheme = Config.DEFAULT_THEME_DARK ? darkTheme : lightTheme
+    } else if (darkModeEnabled === 'FALSE') {
+      globalTheme = lightTheme
+    }
+
+    await this.setupGlobalState(globalTheme)
     this.unsubscribeNetListener = NetInfo.addEventListener(this.handleNetworkChange)
     await gaInitialize()
   }
@@ -118,10 +127,12 @@ class App extends Component<Props, State> {
 
   render() {
     return this.state.appReady ? (
-      <View style={{ flex: 1 }}>
-        <Router />
-        <OverlayAlert />
-      </View>
+      <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+        <View style={{ flex: 1 }}>
+          <Router />
+          <OverlayAlert />
+        </View>
+      </SafeAreaProvider>
     ) : (
       this._renderIntersitial()
     )

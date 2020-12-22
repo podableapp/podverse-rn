@@ -14,8 +14,8 @@ import {
 import { translate } from '../lib/i18n'
 import { testProps } from '../lib/utility'
 import { PV } from '../resources'
-import { gaTrackPageView } from '../services/googleAnalytics'
 import { getAddByRSSPodcastLocally } from '../services/parser'
+import { trackPageView } from '../services/tracking'
 import { addAddByRSSPodcast } from '../state/actions/parser'
 import { core } from '../styles'
 
@@ -28,15 +28,18 @@ type State = {
   url?: string
 }
 
+const testIDPrefix = 'add_podcast_by_rss_screen'
+
 export class AddPodcastByRSSScreen extends React.Component<Props, State> {
   static navigationOptions = ({ navigation }) => {
     return {
       title: translate('Add by RSS'),
-      headerLeft: <NavDismissIcon handlePress={navigation.dismiss} />,
+      headerLeft: <NavDismissIcon handlePress={navigation.dismiss} testID={testIDPrefix} />,
       headerRight: (
         <NavHeaderButtonText
           disabled={navigation.getParam('_savePodcastByRSSUrlIsLoading')}
           handlePress={navigation.getParam('_handleSavePodcastByRSSURL')}
+          testID={`${testIDPrefix}_save`}
           text={translate('Save')}
         />
       )
@@ -53,7 +56,7 @@ export class AddPodcastByRSSScreen extends React.Component<Props, State> {
       _handleSavePodcastByRSSURL: this._handleSavePodcastByRSSURL
     })
 
-    gaTrackPageView('/add-podcast-by-rss', 'Add Podcast By RSS Screen')
+    trackPageView('/add-podcast-by-rss', 'Add Podcast By RSS Screen')
   }
 
   _navToRequestPodcastForm = async () => {
@@ -121,6 +124,7 @@ export class AddPodcastByRSSScreen extends React.Component<Props, State> {
               placeholder={translate('paste RSS feed link here')}
               returnKeyType='done'
               style={[styles.textInput, globalTheme.textInput]}
+              testID={testIDPrefix}
               underlineColorAndroid='transparent'
               value={url}
             />
@@ -128,20 +132,12 @@ export class AddPodcastByRSSScreen extends React.Component<Props, State> {
             <Text fontSizeLargestScale={PV.Fonts.largeSizes.sm} style={styles.text}>
               {translate('AddPodcastByRSSScreenText1')}
             </Text>
-            <Text fontSizeLargestScale={PV.Fonts.largeSizes.sm} style={styles.text}>
-              {translate('AddPodcastByRSSScreenText2')}
-            </Text>
-            <Text fontSizeLargestScale={PV.Fonts.largeSizes.sm} style={styles.text}>
-              {translate('AddPodcastByRSSScreenText3')}
-            </Text>
-            <Text fontSizeLargestScale={PV.Fonts.largeSizes.sm} style={styles.text}>
-              {translate('AddPodcastByRSSScreenText4')}
-            </Text>
             {!!PV.URLs.requestPodcast && (
               <TextLink
                 fontSizeLargestScale={PV.Fonts.largeSizes.sm}
                 onPress={this._navToRequestPodcastForm}
-                style={styles.textLink}>
+                style={styles.textLink}
+                {...testProps(`${testIDPrefix}_request_podcast`)}>
                 {translate('Request Podcast')}
               </TextLink>
             )}

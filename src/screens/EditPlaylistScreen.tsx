@@ -15,7 +15,7 @@ import { translate } from '../lib/i18n'
 import { alertIfNoNetworkConnection } from '../lib/network'
 import { combineAndSortPlaylistItems, testProps } from '../lib/utility'
 import { PV } from '../resources'
-import { gaTrackPageView } from '../services/googleAnalytics'
+import { trackPageView } from '../services/tracking'
 import { addOrRemovePlaylistItem, getPlaylist, updatePlaylist } from '../state/actions/playlist'
 import { core } from '../styles'
 
@@ -34,6 +34,8 @@ type State = {
   sortableListData: any[]
 }
 
+const testIDPrefix = 'edit_playlist_screen'
+
 export class EditPlaylistScreen extends React.Component<Props, State> {
   static navigationOptions = ({ navigation }) => {
     const isEditing = !!navigation.getParam('isEditing')
@@ -44,7 +46,12 @@ export class EditPlaylistScreen extends React.Component<Props, State> {
       title: translate('Edit Playlist'),
       headerRight: (
         <RNView style={styles.headerButtonWrapper}>
-          <NavHeaderButtonText handlePress={handlePress} style={styles.navHeaderTextButton} text={text} />
+          <NavHeaderButtonText
+            handlePress={handlePress}
+            style={styles.navHeaderTextButton}
+            testID={testIDPrefix}
+            text={text}
+          />
         </RNView>
       )
     }
@@ -87,7 +94,7 @@ export class EditPlaylistScreen extends React.Component<Props, State> {
       this.setState({ isLoading: false })
     }
 
-    gaTrackPageView('/edit-playlist', 'Edit Playlist Screen')
+    trackPageView('/edit-playlist', 'Edit Playlist Screen')
   }
 
   _startEditing = () => {
@@ -164,14 +171,15 @@ export class EditPlaylistScreen extends React.Component<Props, State> {
           <QueueTableCell
             clipEndTime={data.endTime}
             clipStartTime={data.startTime}
-            clipTitle={data.title}
-            episodePubDate={data.episode.pubDate}
-            episodeTitle={data.episode.title}
+            {...(data.title ? { clipTitle: data.title } : {})}
+            {...(data.episode.pubDate ? { episodePubDate: data.episode.pubDate } : {})}
+            {...(data.episode.title ? { episodeTitle: data.episode.title } : {})}
             handleRemovePress={() => this._handleRemovePlaylistItemPress(data)}
             podcastImageUrl={data.episode.podcast.shrunkImageUrl || data.episode.podcast.imageUrl}
-            podcastTitle={data.episode.podcast.title}
+            {...(data.episode.podcast.title ? { podcastTitle: data.episode.podcast.title } : {})}
             showMoveButton={!isEditing}
             showRemoveButton={isEditing}
+            testID={`${testIDPrefix}_queue_item_${index}`}
           />
           <Divider style={styles.tableCellDivider} />
         </View>
@@ -180,13 +188,14 @@ export class EditPlaylistScreen extends React.Component<Props, State> {
       cell = (
         <View>
           <QueueTableCell
-            episodePubDate={data.pubDate}
-            episodeTitle={data.title}
+            {...(data.pubDate ? { episodePubDate: data.pubDate } : {})}
+            {...(data.title ? { episodeTitle: data.title } : {})}
             handleRemovePress={() => this._handleRemovePlaylistItemPress(data)}
             podcastImageUrl={(data.podcast && (data.podcast.shrunkImageUrl || data.podcast.imageUrl)) || ''}
-            podcastTitle={(data.podcast && data.podcast.title) || ''}
+            {...(data.podcast && data.podcast.title ? { podcastTitle: data.podcast.title } : {})}
             showMoveButton={!isEditing}
             showRemoveButton={isEditing}
+            testID={`${testIDPrefix}_queue_item_${index}`}
           />
           <Divider style={styles.tableCellDivider} />
         </View>
@@ -242,6 +251,7 @@ export class EditPlaylistScreen extends React.Component<Props, State> {
             placeholder={translate('playlist title')}
             returnKeyType='done'
             style={styles.textInput}
+            testID={`${testIDPrefix}_title`}
             underlineColorAndroid='transparent'
             value={newTitle}
           />

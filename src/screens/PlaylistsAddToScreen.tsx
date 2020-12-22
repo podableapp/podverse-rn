@@ -15,7 +15,7 @@ import { translate } from '../lib/i18n'
 import { alertIfNoNetworkConnection } from '../lib/network'
 import { isOdd, testProps } from '../lib/utility'
 import { PV } from '../resources'
-import { gaTrackPageView } from '../services/googleAnalytics'
+import { trackPageView } from '../services/tracking'
 import { addOrRemovePlaylistItem, createPlaylist } from '../state/actions/playlist'
 import { getLoggedInUserPlaylists } from '../state/actions/user'
 
@@ -32,15 +32,21 @@ type State = {
   showNewPlaylistDialog?: boolean
 }
 
+const testIDPrefix = 'playlists_add_to_screen'
+
 export class PlaylistsAddToScreen extends React.Component<Props, State> {
   static navigationOptions = ({ navigation }) => {
     return {
       title: translate('Add to Playlist'),
-      headerLeft: <NavDismissIcon handlePress={navigation.dismiss} />,
+      headerLeft: <NavDismissIcon handlePress={navigation.dismiss} testID={testIDPrefix} />,
       headerRight: (
         <RNView>
           {navigation.getParam('isLoggedIn') && (
-            <NavHeaderButtonText handlePress={navigation.getParam('showNewPlaylistDialog')} text={translate('New')} />
+            <NavHeaderButtonText
+              handlePress={navigation.getParam('showNewPlaylistDialog')}
+              testID={`${testIDPrefix}_new`}
+              text={translate('New')}
+            />
           )}
         </RNView>
       )
@@ -71,7 +77,7 @@ export class PlaylistsAddToScreen extends React.Component<Props, State> {
       //
     }
     this.setState({ isLoading: false })
-    gaTrackPageView('/playlists-add-to', 'Playlists Add To Screen')
+    trackPageView('/playlists-add-to', 'Playlists Add To Screen')
   }
 
   _saveNewPlaylist = async () => {
@@ -141,6 +147,7 @@ export class PlaylistsAddToScreen extends React.Component<Props, State> {
             this.setState({ isSavingId: '' })
           }
         }}
+        testID={`${testIDPrefix}_playlist_item_${index}`}
         title={item.title}
       />
     )
@@ -158,6 +165,7 @@ export class PlaylistsAddToScreen extends React.Component<Props, State> {
       <View style={styles.view} {...testProps('playlists_add_to_screen_view')}>
         {!isLoggedIn && (
           <MessageWithAction
+            testID={testIDPrefix}
             topActionHandler={this._onPressLogin}
             topActionText={translate('Login')}
             message={translate('Login to add to playlists')}
@@ -183,10 +191,19 @@ export class PlaylistsAddToScreen extends React.Component<Props, State> {
               <Dialog.Input
                 onChangeText={this._handleNewPlaylistTextChange}
                 placeholder={translate('title of playlist')}
+                {...testProps('new_playlist_title_input')}
                 value={newPlaylistTitle}
               />
-              <Dialog.Button label={translate('Cancel')} onPress={this._handleNewPlaylistDismiss} />
-              <Dialog.Button label={translate('Save')} onPress={this._saveNewPlaylist} />
+              <Dialog.Button
+                label={translate('Cancel')}
+                onPress={this._handleNewPlaylistDismiss}
+                {...testProps('new_playlist_title_cancel')}
+              />
+              <Dialog.Button
+                label={translate('Save')}
+                onPress={this._saveNewPlaylist}
+                {...testProps('new_playlist_title_save')}
+              />
             </Dialog.Container>
           </View>
         )}

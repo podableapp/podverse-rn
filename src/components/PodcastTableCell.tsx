@@ -14,10 +14,10 @@ type Props = {
   lastEpisodePubDate?: string
   onPress?: any
   podcastImageUrl?: string
-  podcastTitle: string
+  podcastTitle?: string
   showAutoDownload?: boolean
   showDownloadCount?: boolean
-  testId?: string
+  testID: string
 }
 
 export class PodcastTableCell extends React.PureComponent<Props> {
@@ -31,7 +31,7 @@ export class PodcastTableCell extends React.PureComponent<Props> {
       podcastTitle = translate('untitled podcast'),
       showAutoDownload,
       showDownloadCount,
-      testId
+      testID
     } = this.props
     const { autoDownloadSettings, downloadedPodcastEpisodeCounts, fontScaleMode } = this.global
 
@@ -49,30 +49,37 @@ export class PodcastTableCell extends React.PureComponent<Props> {
       PV.Fonts.fontScale.largest === fontScaleMode ? [styles.titleWrapper, { flex: 1 }] : [styles.titleWraper]
 
     return (
-      <TouchableWithoutFeedback onPress={onPress} {...(testId ? testProps(testId) : {})}>
+      <TouchableWithoutFeedback onPress={onPress} {...(testID ? testProps(testID) : {})}>
         <View hasZebraStripe={hasZebraStripe} style={styles.wrapper}>
           <FastImage source={podcastImageUrl} styles={styles.image} />
           <RNView style={styles.textWrapper}>
-            <RNView style={titleWrapperStyle}>
-              <Text
-                fontSizeLargestScale={PV.Fonts.largeSizes.md}
-                numberOfLines={
-                  [PV.Fonts.fontScale.large, PV.Fonts.fontScale.larger, PV.Fonts.fontScale.largest].includes(
-                    fontScaleMode
-                  )
-                    ? 1
-                    : 2
-                }
-                style={styles.title}>
-                {podcastTitle}
-              </Text>
-            </RNView>
+            {podcastTitle && (
+              <RNView style={titleWrapperStyle}>
+                <Text
+                  fontSizeLargestScale={PV.Fonts.largeSizes.md}
+                  numberOfLines={
+                    [PV.Fonts.fontScale.large, PV.Fonts.fontScale.larger, PV.Fonts.fontScale.largest].includes(
+                      fontScaleMode
+                    )
+                      ? 1
+                      : 2
+                  }
+                  style={styles.title}
+                  testID={`${testID}_title`}>
+                  {podcastTitle.trim()}
+                </Text>
+              </RNView>
+            )}
             {fontScaleMode !== PV.Fonts.fontScale.largest && (
               <>
                 <RNView style={styles.textWrapperRow}>
                   {showDownloadCount && (
                     <RNView style={styles.textWrapperRowLeft}>
-                      <Text isSecondary={true} numberOfLines={1} style={styles.bottomText}>
+                      <Text
+                        isSecondary={true}
+                        numberOfLines={1}
+                        style={styles.bottomText}
+                        testID={`${testID}_downloaded`}>
                         {`${downloadCount} ${translate('downloaded')}`}
                       </Text>
                       {showAutoDownload && shouldAutoDownload && <IndicatorDownload style={styles.autoDownloadIcon} />}
@@ -80,7 +87,11 @@ export class PodcastTableCell extends React.PureComponent<Props> {
                   )}
                   {!!lastEpisodePubDate && (
                     <RNView style={styles.textWrapperRowRight}>
-                      <Text isSecondary={true} numberOfLines={1} style={styles.bottomText}>
+                      <Text
+                        isSecondary={true}
+                        numberOfLines={1}
+                        style={styles.bottomText}
+                        testID={`${testID}_last_pub_date`}>
                         {readableDate(lastEpisodePubDate)}
                       </Text>
                     </RNView>

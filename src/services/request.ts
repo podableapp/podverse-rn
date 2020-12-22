@@ -12,10 +12,8 @@ type PVRequest = {
   opts?: any
 }
 
-export const request = async (req: PVRequest, nsfwMode?: boolean) => {
+export const request = async (req: PVRequest) => {
   const { endpoint = '', query = {}, headers = {}, body, method = 'GET', opts = {} } = req
-
-  headers.nsfwMode = nsfwMode ? 'on' : 'off'
 
   const queryString = Object.keys(query)
     .map((key) => {
@@ -24,9 +22,10 @@ export const request = async (req: PVRequest, nsfwMode?: boolean) => {
     .join('&')
 
   const userAgent = await getAppUserAgent()
+  const urlsApi = await PV.URLs.api()
 
   const axiosRequest = {
-    url: `${PV.URLs.baseUrl}${endpoint}?${queryString}`,
+    url: `${urlsApi.baseUrl}${endpoint}?${queryString}`,
     headers: {
       ...headers,
       'User-Agent': userAgent

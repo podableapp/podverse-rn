@@ -13,17 +13,21 @@ export const Colors = {
   grayLighterTransparent: 'rgba(193, 193, 193, 0.2)',
   grayDarkestZ: '#181818', // only used in zebra stripe cells
   black: '#000000',
-  blueLighter: '#4f83bf',
-  blue: '#2968B1',
-  blueDarker: '#225691',
+  blueLighter: '#4695c0',
+  blue: '#197BB1',
+  blueDarker: '#14628d',
   redLighter: '#c43745',
   red: '#bd2130',
   redDarker: '#aa1e2b',
+  orangeLighter: '#f6b472',
+  orange: '#f4a24f',
+  orangeDarker: '#c3813f',
   greenLighter: '#69c890',
   green: '#29b160',
   greenDarker: '#1d7c43',
   yellow: '#ffc107',
   opacity: 0.1,
   whiteOpaque: 'rgba(255, 255, 255, 0.85)',
-  blackOpaque: 'rgba(0, 0, 0, 0.7625)'
+  blackOpaque: 'rgba(0, 0, 0, 0.7625)',
+  skyBlue: '#3399cc'
 }

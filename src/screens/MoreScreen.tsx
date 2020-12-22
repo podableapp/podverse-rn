@@ -6,7 +6,7 @@ import { Divider, TableSectionHeader, Text, View } from '../components'
 import { translate } from '../lib/i18n'
 import { createEmailLinkUrl, getMembershipStatus, testProps } from '../lib/utility'
 import { PV } from '../resources'
-import { gaTrackPageView } from '../services/googleAnalytics'
+import { trackPageView } from '../services/tracking'
 import { logoutUser } from '../state/actions/auth'
 import { core, getMembershipTextStyle, table } from '../styles'
 
@@ -30,12 +30,12 @@ export class MoreScreen extends React.Component<Props, State> {
   }
 
   componentDidMount() {
-    gaTrackPageView('/more', 'More Screen')
+    trackPageView('/more', 'More Screen')
   }
 
   _moreFeaturesOptions = (isLoggedIn: boolean) => {
     const moreFeaturesList = Config.NAV_STACK_MORE_FEATURES.split(',')
-    const loggedInFeatures = [_playlistsKey, _profilesKey, _myProfileKey, _logoutKey]
+    const loggedInFeatures = [_playlistsKey, _profilesKey, _myProfileKey, _myClipsKey, _logoutKey]
 
     return allMoreFeatures
       .filter((item: any) => {
@@ -53,39 +53,39 @@ export class MoreScreen extends React.Component<Props, State> {
   _moreOtherOptions = (membershipStatus?: string) => {
     const allMoreOtherOptions = [
       {
-        title: membershipStatus,
-        key: _membershipKey,
-        routeName: PV.RouteNames.MembershipScreen,
-        testId: 'more_screen_membership_cell'
-      },
-      {
         title: translate('Add Podcast by RSS'),
         key: _addPodcastByRSSKey,
         routeName: PV.RouteNames.AddPodcastByRSSScreen,
-        testId: 'more_screen_add_podcast_by_rss_cell'
+        testID: 'more_screen_add_podcast_by_rss_cell'
+      },
+      {
+        title: membershipStatus,
+        key: _membershipKey,
+        routeName: PV.RouteNames.MembershipScreen,
+        testID: 'more_screen_membership_cell'
       },
       {
         title: translate('Contact Us'),
         key: _contactKey,
-        testId: 'more_screen_contact_us_cell'
+        testID: 'more_screen_contact_us_cell'
       },
       {
-        title: 'FAQ',
-        key: _faqKey,
-        routeName: PV.RouteNames.FAQScreen,
-        testId: 'more_screen_faq_cell'
-      },
-      {
-        title: translate('About'),
+        title: translate('About brandName'),
         key: _aboutKey,
         routeName: PV.RouteNames.AboutScreen,
-        testId: 'more_screen_about_cell'
+        testID: 'more_screen_about_cell'
       },
       {
         title: translate('Terms of Service'),
         key: _termsOfServiceKey,
         routeName: PV.RouteNames.TermsOfServiceScreen,
-        testId: 'more_screen_terms_of_service_cell'
+        testID: 'more_screen_terms_of_service_cell'
+      },
+      {
+        title: translate('Privacy Policy'),
+        key: _privacyPolicyKey,
+        routeName: PV.RouteNames.PrivacyPolicyScreen,
+        testID: 'more_screen_privacy_policy_cell'
       }
     ]
 
@@ -144,7 +144,7 @@ export class MoreScreen extends React.Component<Props, State> {
         <SectionList
           ItemSeparatorComponent={() => <Divider />}
           renderItem={({ item }) => (
-            <TouchableWithoutFeedback onPress={() => this._onPress(item)} {...testProps(item.testId)}>
+            <TouchableWithoutFeedback onPress={() => this._onPress(item)} {...testProps(item.testID)}>
               <RNView style={[core.row, table.cellWrapper]}>
                 {item.key === _membershipKey && (
                   <RNView style={[core.row, table.cellWrapper]}>
@@ -206,13 +206,13 @@ const _aboutKey = 'About'
 const _addPodcastByRSSKey = 'AddPodcastByRSS'
 const _contactKey = 'Contact'
 const _downloadsKey = 'Downloads'
-const _faqKey = 'FAQ'
 const _loginKey = 'Login'
 const _logoutKey = 'Logout'
 const _membershipKey = 'Membership'
 const _myClipsKey = 'MyClips'
 const _myProfileKey = 'MyProfile'
 const _playlistsKey = 'Playlists'
+const _privacyPolicyKey = 'PrivacyPolicy'
 const _profilesKey = 'Profiles'
 const _settingsKey = 'Settings'
 const _termsOfServiceKey = 'TermsOfService'
@@ -222,40 +222,45 @@ const allMoreFeatures = [
     title: translate('Downloads'),
     key: _downloadsKey,
     routeName: PV.RouteNames.DownloadsScreen,
-    testId: 'more_screen_downloads_cell'
+    testID: 'more_screen_downloads_cell'
   },
   {
     title: translate('Playlists'),
     key: _playlistsKey,
     routeName: PV.RouteNames.PlaylistsScreen,
-    testId: 'more_screen_playlists_cell'
+    testID: 'more_screen_playlists_cell'
   },
   {
     title: translate('Profiles'),
     key: _profilesKey,
     routeName: PV.RouteNames.ProfilesScreen,
-    testId: 'more_screen_profiles_cell'
+    testID: 'more_screen_profiles_cell'
   },
   {
     title: translate('My Profile'),
     key: _myProfileKey,
-    testId: 'more_screen_my_profile_cell'
+    testID: 'more_screen_my_profile_cell'
   },
   {
-    title: translate('Log out'),
-    key: _logoutKey,
-    testId: 'more_screen_log_out_cell'
-  },
-  {
-    title: translate('Login'),
-    key: _loginKey,
-    routeName: PV.RouteNames.AuthNavigator,
-    testId: 'more_screen_login_cell'
+    title: 'My Clips',
+    key: _myClipsKey,
+    testId: 'more_screen_my_clips_cell'
   },
   {
     title: translate('Settings'),
     key: _settingsKey,
     routeName: PV.RouteNames.SettingsScreen,
-    testId: 'more_screen_settings_cell'
+    testID: 'more_screen_settings_cell'
+  },
+  {
+    title: translate('Log out'),
+    key: _logoutKey,
+    testID: 'more_screen_log_out_cell'
+  },
+  {
+    title: translate('Login'),
+    key: _loginKey,
+    routeName: PV.RouteNames.AuthNavigator,
+    testID: 'more_screen_login_cell'
   }
 ]

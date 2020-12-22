@@ -19,8 +19,8 @@ import {
 import { translate } from '../lib/i18n'
 import { checkIfIdMatchesClipIdOrEpisodeId, isOdd, testProps } from '../lib/utility'
 import { PV } from '../resources'
-import { gaTrackPageView } from '../services/googleAnalytics'
 import { movePlayerItemToNewPosition } from '../services/player'
+import { trackPageView } from '../services/tracking'
 import { getHistoryItems, removeHistoryItem } from '../state/actions/history'
 import { loadItemAndPlayTrack } from '../state/actions/player'
 import { getQueueItems, removeQueueItem, updateQueueItems } from '../state/actions/queue'
@@ -38,10 +38,13 @@ type State = {
   viewType?: string
 }
 
+const testIDPrefix = 'queue_screen'
+
 export class QueueScreen extends React.Component<Props, State> {
   static navigationOptions = ({ navigation }) => {
     const { globalTheme } = getGlobal()
     const isTransparent = !!navigation.getParam('isTransparent')
+    const textColor = isTransparent ? globalTheme.text.color : ''
 
     return {
       ...(!isTransparent
@@ -53,6 +56,7 @@ export class QueueScreen extends React.Component<Props, State> {
           }),
       headerTitle: (
         <HeaderTitleSelector
+          color={textColor}
           items={headerTitleItems}
           onValueChange={navigation.getParam('_onViewTypeSelect')}
           placeholder={headerTitleItemPlaceholder}
@@ -66,16 +70,20 @@ export class QueueScreen extends React.Component<Props, State> {
               {!navigation.getParam('isEditing') ? (
                 <RNView style={styles.headerButtonWrapper}>
                   <NavHeaderButtonText
+                    color={textColor}
                     handlePress={navigation.getParam('_startEditing')}
                     style={styles.navHeaderTextButton}
+                    testID={`${testIDPrefix}_header_edit`}
                     text={translate('Edit')}
                   />
                 </RNView>
               ) : (
                 <RNView style={styles.headerButtonWrapper}>
                   <NavHeaderButtonText
+                    color={textColor}
                     handlePress={navigation.getParam('_stopEditing')}
                     style={styles.navHeaderTextButton}
+                    testID={`${testIDPrefix}_header_done`}
                     text={translate('Done')}
                   />
                 </RNView>
@@ -85,14 +93,18 @@ export class QueueScreen extends React.Component<Props, State> {
             <RNView>
               {!navigation.getParam('isEditing') ? (
                 <NavHeaderButtonText
+                  color={textColor}
                   handlePress={navigation.getParam('_startEditing')}
                   style={styles.navHeaderTextButton}
+                  testID={`${testIDPrefix}_header_edit`}
                   text={translate('Edit')}
                 />
               ) : (
                 <NavHeaderButtonText
+                  color={textColor}
                   handlePress={navigation.getParam('_stopEditing')}
                   style={styles.navHeaderTextButton}
+                  testID={`${testIDPrefix}_header_done`}
                   text={translate('Done')}
                 />
               )}
@@ -133,7 +145,7 @@ export class QueueScreen extends React.Component<Props, State> {
       this.setState({ isLoading: false })
     }
 
-    gaTrackPageView('/queue', 'Queue Screen')
+    trackPageView('/queue', 'Queue Screen')
   }
 
   _startEditing = () => {
@@ -206,19 +218,21 @@ export class QueueScreen extends React.Component<Props, State> {
           if (!isEditing) {
             this._handlePlayItem(item)
           }
-        }}>
+        }}
+        {...testProps(`${testIDPrefix}_history_item_${index}`)}>
         <View transparent={isTransparent}>
           <QueueTableCell
             clipEndTime={item.clipEndTime}
             clipStartTime={item.clipStartTime}
-            clipTitle={item.clipTitle}
-            episodePubDate={item.episodePubDate}
-            episodeTitle={item.episodeTitle}
+            {...(item.clipTitle ? { clipTitle: item.clipTitle } : {})}
+            {...(item.episodePubDate ? { episodePubDate: item.episodePubDate } : {})}
+            {...(item.episodeTitle ? { episodeTitle: item.episodeTitle } : {})}
             handleRemovePress={() => this._handleRemoveHistoryItemPress(item)}
             hasZebraStripe={isOdd(index)}
             podcastImageUrl={item.podcastImageUrl}
-            podcastTitle={item.podcastTitle}
+            {...(item.podcastTitle ? { podcastTitle: item.podcastTitle } : {})}
             showRemoveButton={isEditing}
+            testID={`${testIDPrefix}_history_item_${index}`}
             transparent={isTransparent}
           />
         </View>
@@ -234,15 +248,16 @@ export class QueueScreen extends React.Component<Props, State> {
         <QueueTableCell
           clipEndTime={data.clipEndTime}
           clipStartTime={data.clipStartTime}
-          clipTitle={data.clipTitle}
-          episodePubDate={data.episodePubDate}
-          episodeTitle={data.episodeTitle}
+          {...(data.clipTitle ? { clipTitle: data.clipTitle } : {})}
+          {...(data.episodePubDate ? { episodePubDate: data.episodePubDate } : {})}
+          {...(data.episodeTitle ? { episodeTitle: data.episodeTitle } : {})}
           handleRemovePress={() => this._handleRemoveQueueItemPress(data)}
           hasZebraStripe={isOdd(index)}
           podcastImageUrl={data.podcastImageUrl}
-          podcastTitle={data.podcastTitle}
+          {...(data.podcastTitle ? { podcastTitle: data.podcastTitle } : {})}
           showMoveButton={!isEditing}
           showRemoveButton={isEditing}
+          testID={`${testIDPrefix}_queue_item_${index}`}
           transparent={isTransparent}
         />
         <Divider style={styles.tableCellDivider} />
@@ -305,7 +320,7 @@ export class QueueScreen extends React.Component<Props, State> {
     const { isEditing, isLoading, isRemoving, isTransparent, viewType } = this.state
 
     const view = (
-      <View style={styles.view} transparent={isTransparent} {...testProps('queue_screen_view')}>
+      <View style={styles.view} transparent={isTransparent} {...testProps(`${testIDPrefix}_view`)}>
         {!isLoading && viewType === _queueKey && ((queueItems && queueItems.length > 0) || nowPlayingItem) && (
           <View transparent={isTransparent}>
             {!!nowPlayingItem && (
@@ -314,11 +329,12 @@ export class QueueScreen extends React.Component<Props, State> {
                 <QueueTableCell
                   clipEndTime={nowPlayingItem.clipEndTime}
                   clipStartTime={nowPlayingItem.clipStartTime}
-                  clipTitle={nowPlayingItem.clipTitle}
-                  episodePubDate={nowPlayingItem.episodePubDate}
-                  episodeTitle={nowPlayingItem.episodeTitle}
+                  {...(nowPlayingItem.clipTitle ? { clipTitle: nowPlayingItem.clipTitle } : {})}
+                  {...(nowPlayingItem.episodePubDate ? { episodePubDate: nowPlayingItem.episodePubDate } : {})}
+                  {...(nowPlayingItem.episodeTitle ? { episodeTitle: nowPlayingItem.episodeTitle } : {})}
                   podcastImageUrl={nowPlayingItem.podcastImageUrl}
-                  podcastTitle={nowPlayingItem.podcastTitle}
+                  {...(nowPlayingItem.podcastTitle ? { podcastTitle: nowPlayingItem.podcastTitle } : {})}
+                  {...testProps(`${testIDPrefix}_now_playing_header`)}
                   transparent={isTransparent}
                 />
               </View>

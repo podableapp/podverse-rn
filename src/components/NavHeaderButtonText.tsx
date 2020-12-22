@@ -1,5 +1,6 @@
 import { TouchableOpacity } from 'react-native'
 import React, { useGlobal } from 'reactn'
+import { testProps } from '../lib/utility'
 import { PV } from '../resources'
 import { navHeader } from '../styles'
 import { Text } from './'
@@ -10,7 +11,7 @@ type Props = {
   disabled?: boolean
   handlePress: any
   style?: any
-  testID?: string
+  testID: string
   text: string
 }
 
@@ -30,8 +31,14 @@ export const NavHeaderButtonText = (props: Props) => {
   }
 
   return (
-    <TouchableOpacity accessibilityLabel={accessibilityLabel} disabled={disabled} onPress={handlePress} testID={testID}>
-      <Text style={buttonTextStyle}>{props.text}</Text>
+    <TouchableOpacity
+      accessibilityLabel={accessibilityLabel}
+      disabled={disabled}
+      onPress={handlePress}
+      {...testProps(`${testID}_nav_header_button_text`)}>
+      <Text style={buttonTextStyle} testID={`${testID}_text`}>
+        {props.text}
+      </Text>
     </TouchableOpacity>
   )
 }

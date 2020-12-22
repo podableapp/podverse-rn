@@ -3,8 +3,8 @@ import React from 'reactn'
 import { Button, NavDismissIcon, SafeAreaView, TimePicker, View } from '../components'
 import { translate } from '../lib/i18n'
 import { testProps } from '../lib/utility'
-import { gaTrackPageView } from '../services/googleAnalytics'
 import { sleepTimerIsRunning } from '../services/sleepTimer'
+import { trackPageView } from '../services/tracking'
 import {
   pauseSleepTimerStateUpdates,
   resumeSleepTimerStateUpdates,
@@ -20,10 +20,12 @@ type Props = {
 
 type State = {}
 
+const testIDPrefix = 'sleep_timer_screen'
+
 export class SleepTimerScreen extends React.Component<Props, State> {
   static navigationOptions = ({ navigation }) => ({
     title: translate('Sleep Timer'),
-    headerLeft: <NavDismissIcon handlePress={navigation.dismiss} />,
+    headerLeft: <NavDismissIcon handlePress={navigation.dismiss} testID={testIDPrefix} />,
     headerRight: <RNView />
   })
 
@@ -40,7 +42,7 @@ export class SleepTimerScreen extends React.Component<Props, State> {
       resumeSleepTimerStateUpdates()
     }
 
-    gaTrackPageView('/sleep-timer', 'Sleep Timer Screen')
+    trackPageView('/sleep-timer', 'Sleep Timer Screen')
   }
 
   async componentWillUnmount() {
@@ -78,6 +80,7 @@ export class SleepTimerScreen extends React.Component<Props, State> {
             isSuccess={!isActive}
             isWarning={isActive}
             onPress={this._toggleSleepTimer}
+            testID={`${testIDPrefix}_toggle_timer`}
             text={isActive ? translate('Stop Timer') : translate('Start Timer')}
             wrapperStyles={styles.button}
           />

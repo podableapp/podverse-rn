@@ -5,8 +5,8 @@ import { translate } from '../lib/i18n'
 import { hasValidNetworkConnection } from '../lib/network'
 import { getMembershipExpiration, getMembershipStatus, readableDate, testProps } from '../lib/utility'
 import { PV } from '../resources'
-import { gaTrackPageView } from '../services/googleAnalytics'
 import { buy1YearPremium } from '../services/purchaseShared'
+import { trackPageView } from '../services/tracking'
 import { getAuthUserInfo } from '../state/actions/auth'
 import { androidHandleStatusCheck } from '../state/actions/purchase.android'
 import { iosHandlePurchaseStatusCheck } from '../state/actions/purchase.ios'
@@ -21,6 +21,8 @@ type State = {
   isLoading: boolean
   showNoInternetConnectionMessage?: boolean
 }
+
+const testIDPrefix = 'membership_screen'
 
 export class MembershipScreen extends React.Component<Props, State> {
   static navigationOptions = () => {
@@ -52,7 +54,7 @@ export class MembershipScreen extends React.Component<Props, State> {
       showNoInternetConnectionMessage: !hasInternetConnection
     })
 
-    gaTrackPageView('/membership', 'Membership Screen')
+    trackPageView('/membership', 'Membership Screen')
   }
 
   handleRenewPress = async () => {
@@ -139,7 +141,8 @@ export class MembershipScreen extends React.Component<Props, State> {
                 disabled={disableButton}
                 fontSizeLargestScale={PV.Fonts.largeSizes.md}
                 onPress={this.handleRenewPress}
-                style={styles.subText}>
+                style={styles.subText}
+                {...testProps(`${testIDPrefix}_renew_membership`)}>
                 {translate('Renew Membership')}
               </TextLink>
             </View>
@@ -162,7 +165,8 @@ export class MembershipScreen extends React.Component<Props, State> {
                 disabled={disableButton}
                 fontSizeLargestScale={PV.Fonts.largeSizes.md}
                 onPress={this.handleSignUpPress}
-                style={styles.subText}>
+                style={styles.subText}
+                {...testProps(`${testIDPrefix}_sign_up`)}>
                 {translate('Sign Up')}
               </TextLink>
             </View>
@@ -235,10 +239,9 @@ const comparisonData = [
     column2: true
   },
   {
-    text: translate('support open source software'),
+    text: translate('support free and open source software'),
     column1: true,
-    column2: true,
-    isSmile: true
+    column2: true
   }
 ]
 

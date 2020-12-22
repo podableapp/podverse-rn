@@ -3,7 +3,7 @@ import { MessageWithAction } from '../components'
 import { translate } from '../lib/i18n'
 import { PV } from '../resources'
 import { sendVerificationEmail } from '../services/auth'
-import { gaTrackPageView } from '../services/googleAnalytics'
+import { trackPageView } from '../services/tracking'
 
 type Props = {
   navigation: any
@@ -13,6 +13,8 @@ type State = {
   email?: string
   isResendingEmail?: boolean
 }
+
+const testIDPrefix = 'email_verification_screen'
 
 export class EmailVerificationScreen extends React.Component<Props, State> {
   static navigationOptions = () => {
@@ -32,7 +34,7 @@ export class EmailVerificationScreen extends React.Component<Props, State> {
   }
 
   componentDidMount() {
-    gaTrackPageView('/email-verification', 'Email Verification Screen')
+    trackPageView('/email-verification', 'Email Verification Screen')
   }
 
   _navToLogin = async () => {
@@ -60,6 +62,7 @@ export class EmailVerificationScreen extends React.Component<Props, State> {
         isLoading={isResendingEmail}
         message={`${translate('Please verify your email address to login')} 
         ${translate('You should receive an email shortly The email may go to your Spam folder')}`}
+        testID={testIDPrefix}
         topActionHandler={this._sendVerificationEmail}
         topActionText={translate('Resend Verification Email')}
       />

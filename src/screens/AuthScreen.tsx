@@ -6,7 +6,7 @@ import { alertIfNoNetworkConnection } from '../lib/network'
 import { testProps } from '../lib/utility'
 import { PV } from '../resources'
 import { sendResetPassword } from '../services/auth'
-import { gaTrackPageView } from '../services/googleAnalytics'
+import { trackPageView } from '../services/tracking'
 import { Credentials, loginUser, signUpUser } from '../state/actions/auth'
 
 type Props = {
@@ -25,16 +25,18 @@ const _login = 'login'
 const _resetPassword = 'resetPassword'
 const _signup = 'signup'
 
+const testIDPrefix = 'auth_screen'
+
 export class AuthScreen extends React.Component<Props, State> {
   static navigationOptions = ({ navigation }) => {
     const title = navigation.getParam('title') || translate('Login')
     return {
       title,
-      headerLeft: <NavDismissIcon handlePress={navigation.dismiss} />,
+      headerLeft: <NavDismissIcon handlePress={navigation.dismiss} testID={testIDPrefix} />,
       headerRight: null,
       headerStyle: {
         borderBottomWidth: 0,
-        backgroundColor: PV.Colors.brandColor
+        backgroundColor: PV.Colors.black
       }
     }
   }
@@ -53,7 +55,7 @@ export class AuthScreen extends React.Component<Props, State> {
   }
 
   componentDidMount() {
-    gaTrackPageView('/auth', 'Auth Screen')
+    trackPageView('/auth', 'Auth Screen')
   }
 
   attemptLogin = async (credentials: Credentials) => {
@@ -119,7 +121,6 @@ export class AuthScreen extends React.Component<Props, State> {
           email: credentials.email
         })
       } catch (error) {
-        console.log('attemptSignUp', error)
         if (error.response && error.response.data && error.response.data.message) {
           Alert.alert(PV.Alerts.SIGN_UP_ERROR.title, error.response.data.message, PV.Alerts.BUTTONS.OK)
         }
@@ -139,7 +140,6 @@ export class AuthScreen extends React.Component<Props, State> {
   }
 
   render() {
-    const { navigation } = this.props
     const { isLoadingLogin, isLoadingResetPassword, isLoadingSignUp, screenType } = this.state
     const { fontScaleMode } = this.global
     let bottomButtons
@@ -151,19 +151,28 @@ export class AuthScreen extends React.Component<Props, State> {
 
     if (screenType === _login) {
       bottomButtons = [
-        <Text key='reset' onPress={this._showResetPassword} style={switchOptionTextStyle}>
+        <Text
+          key='reset'
+          onPress={this._showResetPassword}
+          style={switchOptionTextStyle}
+          {...testProps('auth_screen_reset_password_button')}>
           {translate('Reset Password')}
         </Text>,
         <Text
           key='moreInfo'
           onPress={this._showMembership}
-          style={[switchOptionTextStyle, { marginTop: 0, width: '100%' }]}>
+          style={[switchOptionTextStyle, { marginTop: 0, width: '100%' }]}
+          {...testProps('auth_screen_sign_up_button')}>
           {translate('Sign Up')}
         </Text>
       ]
     } else if (screenType === _resetPassword) {
       bottomButtons = [
-        <Text key='membership' onPress={this._showMembership} style={styles.switchOptionText}>
+        <Text
+          key='membership'
+          onPress={this._showMembership}
+          style={styles.switchOptionText}
+          {...testProps('auth_screen_login_button')}>
           {translate('Login')}
         </Text>
       ]
@@ -217,7 +226,7 @@ const styles = StyleSheet.create({
     width: '100%'
   },
   safeAreaView: {
-    backgroundColor: PV.Colors.brandColor
+    backgroundColor: PV.Colors.black
   },
   switchOptionText: {
     color: PV.Colors.white,
@@ -229,14 +238,14 @@ const styles = StyleSheet.create({
   },
   view: {
     alignItems: 'center',
-    backgroundColor: PV.Colors.brandColor,
+    backgroundColor: PV.Colors.black,
     flex: 1,
     justifyContent: 'flex-start',
     paddingTop: 40
   },
   viewWithoutBanner: {
     alignItems: 'center',
-    backgroundColor: PV.Colors.brandColor,
+    backgroundColor: PV.Colors.black,
     flex: 1,
     justifyContent: 'flex-start',
     paddingTop: 40

@@ -8,8 +8,8 @@ import { NavItemIcon, NavItemWrapper } from './'
 
 type Props = {
   getInitialProgressValue: any
-  navigation: any
   globalTheme: GlobalTheme
+  navigation: any
 }
 
 export const NavMakeClipIcon = (props: Props) => {
@@ -37,7 +37,7 @@ export const NavMakeClipIcon = (props: Props) => {
   }
 
   return (
-    <NavItemWrapper handlePress={handlePress} testId='nav_make_clip_icon'>
+    <NavItemWrapper handlePress={handlePress} testID='nav_make_clip_icon'>
       <NavItemIcon name='cut' color={color} />
     </NavItemWrapper>
   )

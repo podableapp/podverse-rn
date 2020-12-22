@@ -28,7 +28,6 @@ import { translate } from '../lib/i18n'
 import { alertIfNoNetworkConnection } from '../lib/network'
 import { testProps } from '../lib/utility'
 import { PV } from '../resources'
-import { gaTrackPageView } from '../services/googleAnalytics'
 import { createMediaRef, updateMediaRef } from '../services/mediaRef'
 import {
   playerJumpBackward,
@@ -37,6 +36,7 @@ import {
   playerPreviewStartTime,
   PVTrackPlayer
 } from '../services/player'
+import { trackPageView } from '../services/tracking'
 import { setNowPlayingItem, setPlaybackSpeed, togglePlay } from '../state/actions/player'
 import { core, darkTheme, hidePickerIconOnAndroidTransparent, playerStyles } from '../styles'
 
@@ -56,6 +56,8 @@ type State = {
   title?: string
 }
 
+const testIDPrefix = 'make_clip_screen'
+
 export class MakeClipScreen extends React.Component<Props, State> {
   static navigationOptions = ({ navigation }) => {
     const globalTheme = navigation.getParam('globalTheme')
@@ -70,6 +72,7 @@ export class MakeClipScreen extends React.Component<Props, State> {
           <NavHeaderButtonText
             color={globalTheme.text.color}
             handlePress={navigation.getParam('_saveMediaRef')}
+            testID={testIDPrefix}
             text={translate('Save')}
           />
         </RNView>
@@ -130,7 +133,7 @@ export class MakeClipScreen extends React.Component<Props, State> {
       }
     )
 
-    gaTrackPageView('/make-clip', 'Make Clip Screen')
+    trackPageView('/make-clip', 'Make Clip Screen')
   }
 
   componentWillUnmount() {
@@ -254,7 +257,7 @@ export class MakeClipScreen extends React.Component<Props, State> {
 
       try {
         const mediaRef = isEditing ? await updateMediaRef(data) : await createMediaRef(data)
-        const url = PV.URLs.clip + mediaRef.id
+        const url = this.global.urlsWeb.clip + mediaRef.id
 
         if (isEditing) {
           const newItem = {
@@ -351,7 +354,7 @@ export class MakeClipScreen extends React.Component<Props, State> {
     const { navigation } = this.props
     const { globalTheme, player, session } = this.global
     const isDarkMode = globalTheme === darkTheme
-    const { nowPlayingItem, playbackRate, playbackState } = player
+    const { backupDuration, nowPlayingItem, playbackRate, playbackState } = player
     const { userInfo } = session
     const {
       endTime,
@@ -391,6 +394,7 @@ export class MakeClipScreen extends React.Component<Props, State> {
                 onValueChange={this._handleSelectPrivacy}
                 placeholder={placeholderItem}
                 style={[hidePickerIconOnAndroidTransparent(isDarkMode), { backgroundColor: 'transparent' }]}
+                touchableWrapperProps={{ testID: `${testIDPrefix}_picker_select_privacy` }}
                 useNativeAndroidPickerStyle={false}
                 value={isPublicItemSelected.value}>
                 <View style={core.selectorWrapper} transparent={true}>
@@ -413,6 +417,7 @@ export class MakeClipScreen extends React.Component<Props, State> {
               returnKeyType='done'
               style={[styles.textInput, globalTheme.textInput]}
               underlineColorAndroid='transparent'
+              testID={`${testIDPrefix}_title`}
               value={title}
             />
           </View>
@@ -434,6 +439,7 @@ export class MakeClipScreen extends React.Component<Props, State> {
                 handleSetTime={this._setStartTime}
                 labelText={translate('Start Time')}
                 placeholder='--:--'
+                testID={`${testIDPrefix}_start`}
                 time={startTime}
                 wrapperStyle={styles.timeInput}
               />
@@ -447,12 +453,14 @@ export class MakeClipScreen extends React.Component<Props, State> {
                 handleSetTime={this._setEndTime}
                 labelText={translate('End Time')}
                 placeholder={translate('optional')}
+                testID={`${testIDPrefix}_end`}
                 time={endTime}
                 wrapperStyle={styles.timeInput}
               />
             </View>
             <View style={styles.progressWrapper} transparent={true}>
               <PlayerProgressBar
+                backupDuration={backupDuration}
                 clipEndTime={endTime}
                 clipStartTime={startTime}
                 globalTheme={globalTheme}
@@ -460,27 +468,43 @@ export class MakeClipScreen extends React.Component<Props, State> {
               />
             </View>
             <RNView style={[styles.makeClipPlayerControls, globalTheme.makeClipPlayerControlsWrapper]}>
-              <TouchableOpacity onPress={this._playerJumpBackward} style={playerStyles.icon}>
+              <TouchableOpacity
+                onPress={this._playerJumpBackward}
+                style={playerStyles.icon}
+                {...testProps(`${testIDPrefix}_jump_backward`)}>
                 <Icon name='undo-alt' size={32} />
               </TouchableOpacity>
-              <TouchableOpacity onPress={this._playerMiniJumpBackward} style={playerStyles.icon}>
+              <TouchableOpacity
+                onPress={this._playerMiniJumpBackward}
+                style={playerStyles.icon}
+                {...testProps(`${testIDPrefix}_mini_jump_backward`)}>
                 <Icon name='angle-left' size={24} />
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => togglePlay()} style={[playerStyles.iconLarge, styles.playButton]}>
+              <TouchableOpacity
+                onPress={() => togglePlay()}
+                style={[playerStyles.iconLarge, styles.playButton]}
+                {...testProps(`${testIDPrefix}_toggle_play`)}>
                 {playbackState !== PVTrackPlayer.STATE_BUFFERING && (
                   <Icon
                     name={playbackState === PVTrackPlayer.STATE_PLAYING ? 'pause-circle' : 'play-circle'}
                     size={48}
+                    testID={`${testIDPrefix}_${playbackState === PVTrackPlayer.STATE_PLAYING ? 'pause' : 'play'}`}
                   />
                 )}
                 {playbackState === PVTrackPlayer.STATE_BUFFERING && (
                   <ActivityIndicator styles={styles.activityIndicator} />
                 )}
               </TouchableOpacity>
-              <TouchableOpacity onPress={this._playerMiniJumpForward} style={playerStyles.icon}>
+              <TouchableOpacity
+                onPress={this._playerMiniJumpForward}
+                style={playerStyles.icon}
+                {...testProps(`${testIDPrefix}_mini_jump_forward`)}>
                 <Icon name='angle-right' size={24} />
               </TouchableOpacity>
-              <TouchableOpacity onPress={this._playerJumpForward} style={playerStyles.icon}>
+              <TouchableOpacity
+                onPress={this._playerJumpForward}
+                style={playerStyles.icon}
+                {...testProps(`${testIDPrefix}_jump_forward`)}>
                 <Icon name='redo-alt' size={32} />
               </TouchableOpacity>
             </RNView>
@@ -492,7 +516,8 @@ export class MakeClipScreen extends React.Component<Props, State> {
                   right: 4,
                   top: 4
                 }}
-                onPress={() => this.setState({ showHowToModal: true })}>
+                onPress={() => this.setState({ showHowToModal: true })}
+                {...testProps(`${testIDPrefix}_show_how_to`)}>
                 <View transparent={true}>
                   <Text
                     fontSizeLargestScale={PV.Fonts.largeSizes.sm}
@@ -508,11 +533,13 @@ export class MakeClipScreen extends React.Component<Props, State> {
                   right: 4,
                   top: 4
                 }}
-                onPress={this._adjustSpeed}>
+                onPress={this._adjustSpeed}
+                {...testProps(`${testIDPrefix}_adjust_speed`)}>
                 <View transparent={true}>
                   <Text
                     fontSizeLargestScale={PV.Fonts.largeSizes.sm}
-                    style={[styles.bottomButton, styles.bottomRowText]}>
+                    style={[styles.bottomButton, styles.bottomRowText]}
+                    testID={`${testIDPrefix}_adjust_speed_label`}>
                     {`${playbackRate}X`}
                   </Text>
                 </View>
@@ -524,7 +551,8 @@ export class MakeClipScreen extends React.Component<Props, State> {
                   right: 4,
                   top: 4
                 }}
-                onPress={() => navigation.navigate(PV.RouteNames.PlayerFAQScreen)}>
+                onPress={() => navigation.navigate(PV.RouteNames.PlayerFAQScreen)}
+                {...testProps(`${testIDPrefix}_show_faq`)}>
                 <View transparent={true}>
                   <Text
                     fontSizeLargestScale={PV.Fonts.largeSizes.sm}
@@ -559,7 +587,7 @@ export class MakeClipScreen extends React.Component<Props, State> {
                 <Text fontSizeLargestScale={PV.Fonts.largeSizes.md} style={styles.modalText}>
                   {translate('If a podcast uses dynamically inserted ads its clip start times will not stay accurate')}
                 </Text>
-                <TouchableOpacity onPress={this._hideHowTo}>
+                <TouchableOpacity onPress={this._hideHowTo} {...testProps(`${testIDPrefix}_close`)}>
                   <Text fontSizeLargestScale={PV.Fonts.largeSizes.md} numberOfLines={1} style={styles.modalButton}>
                     {translate('Close')}
                   </Text>

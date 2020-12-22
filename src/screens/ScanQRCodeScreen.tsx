@@ -1,8 +1,9 @@
 // @flow
 
 import React, { useState } from 'react'
-import { Alert, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Alert, SafeAreaView, StyleSheet, Text, View } from 'react-native'
 import { RNCamera } from 'react-native-camera'
+import { Button, NavDismissIcon } from '../components'
 import { translate } from '../lib/i18n'
 import { PV } from '../resources'
 import { getAddByRSSPodcastLocally } from '../services/parser'
@@ -11,13 +12,19 @@ import { addAddByRSSPodcast } from '../state/actions/parser'
 
 type Props = {}
 
+const testIDPrefix = 'scan_qr_code_screen'
+
 export const ScanQRCodeScreen = (props: Props) => {
   const [scanned, setScanned] = useState(false)
   const { navigate, dismiss } = props.navigation
 
   const parsePayload = (qrData = '') => {
-    if (!qrData || !qrData.startsWith('https://')) {
+    if (!qrData) {
       throw new Error(translate('Invalid or missing QR data'))
+    }
+
+    if (qrData.startsWith('http://')) {
+      qrData = qrData.replace('http://', 'https://')
     }
 
     const parsedData = qrData.split('?')
@@ -98,9 +105,12 @@ export const ScanQRCodeScreen = (props: Props) => {
               {scanned ? translate('Processing') : translate('Scan a valid QR code')}
             </Text>
             {!scanned && (
-              <TouchableOpacity style={styles.dismissButton} onPress={() => dismiss()}>
-                <Text style={styles.dismissButtonText}>{translate('CANCEL')}</Text>
-              </TouchableOpacity>
+              <Button
+                onPress={() => dismiss()}
+                testID={`${testIDPrefix}_cancel`}
+                text={translate('CANCEL')}
+                wrapperStyles={styles.dismissButton}
+              />
             )}
           </View>
         </View>
@@ -109,15 +119,17 @@ export const ScanQRCodeScreen = (props: Props) => {
   )
 }
 
-ScanQRCodeScreen.navigationOptions = () => ({
-  title: translate('QR Reader'),
-  headerRight: null
-})
+ScanQRCodeScreen.navigationOptions = ({ navigation }) => {
+  return {
+    title: translate('QR Reader'),
+    headerLeft: <NavDismissIcon handlePress={navigation.dismiss} />,
+    headerRight: null
+  }
+}
 
 const styles = StyleSheet.create({
   view: {
-    flex: 1,
-    backgroundColor: PV.Colors.black
+    flex: 1
   },
   preview: {
     ...StyleSheet.absoluteFillObject,

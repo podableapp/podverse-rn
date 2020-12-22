@@ -6,7 +6,7 @@ import { translate } from '../lib/i18n'
 import { alertIfNoNetworkConnection } from '../lib/network'
 import { testProps } from '../lib/utility'
 import { PV } from '../resources'
-import { gaTrackPageView } from '../services/googleAnalytics'
+import { trackPageView } from '../services/tracking'
 import { getAuthUserInfo } from '../state/actions/auth'
 import { updateLoggedInUser } from '../state/actions/user'
 import { core } from '../styles'
@@ -21,11 +21,19 @@ type State = {
   selectedIsPublicKey?: boolean
 }
 
+const testIDPrefix = 'edit_profile_screen'
+
 export class EditProfileScreen extends React.Component<Props, State> {
   static navigationOptions = ({ navigation }) => {
     return {
       title: translate('Edit Profile'),
-      headerRight: <NavHeaderButtonText handlePress={navigation.getParam('updateUser')} text={translate('Save')} />
+      headerRight: (
+        <NavHeaderButtonText
+          handlePress={navigation.getParam('updateUser')}
+          testID={testIDPrefix}
+          text={translate('Save')}
+        />
+      )
     }
   }
 
@@ -49,7 +57,7 @@ export class EditProfileScreen extends React.Component<Props, State> {
     }
     this.setState({ isLoading: false })
 
-    gaTrackPageView('/edit-profile', 'Edit Profile Screen')
+    trackPageView('/edit-profile', 'Edit Profile Screen')
   }
 
   _updateUser = async () => {
@@ -122,6 +130,7 @@ export class EditProfileScreen extends React.Component<Props, State> {
               returnKeyType='done'
               style={[styles.textInput, globalTheme.textInput]}
               underlineColorAndroid='transparent'
+              testID={`${testIDPrefix}_name`}
               value={name}
             />
             <Text fontSizeLargestScale={PV.Fonts.largeSizes.md} style={core.textInputLabel}>
@@ -131,6 +140,7 @@ export class EditProfileScreen extends React.Component<Props, State> {
               items={isPublicOptions}
               onValueChange={this._onChangeIsPublic}
               placeholder={selectPlaceholder}
+              touchableWrapperProps={{ testID: `${testIDPrefix}_picker_select_privacy` }}
               value={selectedIsPublicKey}>
               <View style={[core.selectorWrapper, globalTheme.textInput]}>
                 <Text fontSizeLargestScale={PV.Fonts.largeSizes.md} style={core.selectorText}>

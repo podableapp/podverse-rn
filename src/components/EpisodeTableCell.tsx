@@ -15,7 +15,8 @@ type Props = {
   podcastImageUrl?: string
   podcastTitle?: string
   pubDate?: string
-  testId?: string
+  showPodcastTitle?: boolean
+  testID: string
   title?: string
   transparent?: boolean
 }
@@ -24,17 +25,18 @@ export class EpisodeTableCell extends React.PureComponent<Props> {
   render() {
     const {
       id,
-      pubDate = '',
       handleMorePress,
       handleNavigationPress,
       hasZebraStripe,
       hideImage,
       podcastImageUrl,
-      podcastTitle,
-      testId,
+      podcastTitle = translate('untitled podcast'),
+      pubDate = '',
+      showPodcastTitle,
+      testID,
       transparent
     } = this.props
-    let { description = '', title } = this.props
+    let { description = '', title = '' } = this.props
     description = removeHTMLFromString(description)
     description = decodeHTMLString(description)
 
@@ -51,20 +53,31 @@ export class EpisodeTableCell extends React.PureComponent<Props> {
       <RNView style={styles.innerTopView}>
         {!!podcastImageUrl && <FastImage isSmall={true} source={podcastImageUrl} styles={styles.image} />}
         <RNView style={styles.textWrapper}>
-          {!!podcastTitle && (
+          {showPodcastTitle && podcastTitle && (
             <Text
               fontSizeLargestScale={PV.Fonts.largeSizes.sm}
               isSecondary={true}
               numberOfLines={1}
-              style={styles.podcastTitle}>
-              {podcastTitle}
+              style={styles.podcastTitle}
+              testID={`${testID}_podcast_title`}>
+              {podcastTitle.trim()}
             </Text>
           )}
-          <Text fontSizeLargestScale={PV.Fonts.largeSizes.md} numberOfLines={4} style={titleStyle}>
-            {title}
-          </Text>
+          {title && (
+            <Text
+              fontSizeLargestScale={PV.Fonts.largeSizes.md}
+              numberOfLines={4}
+              style={titleStyle}
+              testID={`${testID}_title`}>
+              {title.trim()}
+            </Text>
+          )}
           <RNView style={styles.textWrapperBottomRow}>
-            <Text fontSizeLargestScale={PV.Fonts.largeSizes.sm} isSecondary={true} style={styles.pubDate}>
+            <Text
+              fontSizeLargestScale={PV.Fonts.largeSizes.sm}
+              isSecondary={true}
+              style={styles.pubDate}
+              testID={`${testID}_pub_date`}>
               {readableDate(pubDate)}
             </Text>
             {isDownloaded && <IndicatorDownload />}
@@ -76,8 +89,13 @@ export class EpisodeTableCell extends React.PureComponent<Props> {
     const descriptionStyle = hideImage ? [styles.description, { paddingLeft: 0 }] : styles.description
 
     const bottomText = (
-      <Text fontSizeLargestScale={PV.Fonts.largeSizes.md} isSecondary={true} numberOfLines={4} style={descriptionStyle}>
-        {description}
+      <Text
+        fontSizeLargestScale={PV.Fonts.largeSizes.md}
+        isSecondary={true}
+        numberOfLines={4}
+        style={descriptionStyle}
+        testID={`${testID}_description`}>
+        {description.trim()}
       </Text>
     )
 
@@ -85,18 +103,27 @@ export class EpisodeTableCell extends React.PureComponent<Props> {
       <View hasZebraStripe={hasZebraStripe} style={styles.wrapper} transparent={transparent}>
         <RNView style={styles.wrapperTop}>
           {handleNavigationPress ? (
-            <TouchableWithoutFeedback onPress={handleNavigationPress} {...(testId ? testProps(testId) : {})}>
+            <TouchableWithoutFeedback
+              onPress={handleNavigationPress}
+              {...(testID ? testProps(`${testID}_top_view_nav`) : {})}>
               {innerTopView}
             </TouchableWithoutFeedback>
           ) : (
             innerTopView
           )}
           {handleMorePress && PV.Fonts.fontScale.largest !== fontScaleMode && (
-            <MoreButton handleShowMore={handleMorePress} height={hideImage ? 46 : 64} isLoading={isDownloading} />
+            <MoreButton
+              handleShowMore={handleMorePress}
+              height={hideImage ? 46 : 64}
+              isLoading={isDownloading}
+              testID={testID}
+            />
           )}
         </RNView>
         {!!description && handleNavigationPress && (
-          <TouchableWithoutFeedback onPress={handleNavigationPress} {...(testId ? testProps(testId) : {})}>
+          <TouchableWithoutFeedback
+            onPress={handleNavigationPress}
+            {...(testID ? testProps(`${testID}_bottom_view_nav`) : {})}>
             <RNView>{PV.Fonts.fontScale.largest !== fontScaleMode && bottomText}</RNView>
           </TouchableWithoutFeedback>
         )}

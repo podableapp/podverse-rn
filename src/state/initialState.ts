@@ -15,6 +15,10 @@ const initialTheme: InitialState = {
   downloadedPodcasts: [],
   addByRSSPodcasts: [],
   censorNSFWText: true,
+  customAPIDomain: '',
+  customAPIDomainEnabled: false,
+  customWebDomain: '',
+  customWebDomainEnabled: false,
   offlineModeEnabled: false,
   overlayAlert: {
     shouldShowAlert: false
@@ -97,11 +101,10 @@ const initialTheme: InitialState = {
     },
     isLoggedIn: false
   },
-  settings: {
-    nsfwMode: true
-  },
   subscribedPodcasts: [],
   subscribedPodcastsTotalCount: 0,
+  urlsAPI: null,
+  urlsWeb: null,
   userAgent: ''
 }
 

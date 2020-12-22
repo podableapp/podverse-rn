@@ -5,7 +5,7 @@ import { translate } from '../lib/i18n'
 import { alertIfNoNetworkConnection, hasValidNetworkConnection } from '../lib/network'
 import { isOdd, testProps } from '../lib/utility'
 import { PV } from '../resources'
-import { gaTrackPageView } from '../services/googleAnalytics'
+import { trackPageView } from '../services/tracking'
 import { getAuthUserInfo } from '../state/actions/auth'
 import { getPublicUsersByQuery, toggleSubscribeToUser } from '../state/actions/user'
 
@@ -21,6 +21,8 @@ type State = {
   queryPage: number
   showNoInternetConnectionMessage?: boolean
 }
+
+const testIDPrefix = 'profiles_screen'
 
 export class ProfilesScreen extends React.Component<Props, State> {
   static navigationOptions = () => {
@@ -55,7 +57,7 @@ export class ProfilesScreen extends React.Component<Props, State> {
       navigation.navigate(PV.RouteNames.ProfileScreen, { userId })
     }
 
-    gaTrackPageView('/profiles', 'Profiles Screen')
+    trackPageView('/profiles', 'Profiles Screen')
   }
 
   _onEndReached = ({ distanceFromEnd }) => {
@@ -94,14 +96,16 @@ export class ProfilesScreen extends React.Component<Props, State> {
             navigationTitle: translate('Profile')
           })
         }
+        testID={`${testIDPrefix}_profile_${index}`}
       />
     )
   }
 
-  _renderHiddenItem = ({ item }, rowMap) => (
+  _renderHiddenItem = ({ item, index }, rowMap) => (
     <SwipeRowBack
       isLoading={this.state.isUnsubscribing}
       onPress={() => this._handleHiddenItemPress(item.id, rowMap)}
+      testID={`${testIDPrefix}_profile_${index}`}
       text={translate('Remove')}
     />
   )

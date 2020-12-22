@@ -31,20 +31,13 @@ import { getDownloadedEpisodes, removeDownloadedPodcast } from '../lib/downloade
 import { downloadEpisode } from '../lib/downloader'
 import { translate } from '../lib/i18n'
 import { alertIfNoNetworkConnection, hasValidNetworkConnection } from '../lib/network'
-import {
-  decodeHTMLString,
-  isOdd,
-  readableDate,
-  removeHTMLFromString,
-  safelyUnwrapNestedVariable,
-  testProps
-} from '../lib/utility'
+import { decodeHTMLString, isOdd, removeHTMLFromString, safelyUnwrapNestedVariable, testProps } from '../lib/utility'
 import { PV } from '../resources'
 import { getEpisodes } from '../services/episode'
-import { gaTrackPageView } from '../services/googleAnalytics'
 import { getMediaRefs } from '../services/mediaRef'
 import { getAddByRSSPodcastLocally } from '../services/parser'
 import { getPodcast } from '../services/podcast'
+import { trackPageView } from '../services/tracking'
 import * as DownloadState from '../state/actions/downloads'
 import { toggleAddByRSSPodcastFeedUrl } from '../state/actions/parser'
 import { toggleSubscribeToPodcast } from '../state/actions/podcast'
@@ -77,6 +70,8 @@ type State = {
   viewType: string | null
 }
 
+const testIDPrefix = 'podcast_screen'
+
 export class PodcastScreen extends React.Component<Props, State> {
   static navigationOptions = ({ navigation }) => {
     const podcastId = navigation.getParam('podcastId')
@@ -91,7 +86,8 @@ export class PodcastScreen extends React.Component<Props, State> {
             <NavShareIcon
               endingText={translate('shared using brandName')}
               podcastTitle={podcastTitle}
-              url={PV.URLs.podcast + podcastId}
+              urlId={podcastId}
+              urlPath={PV.URLs.webPaths.podcast}
             />
           )}
           <NavSearchIcon navigation={navigation} />
@@ -166,12 +162,13 @@ export class PodcastScreen extends React.Component<Props, State> {
       },
       () => {
         this._initializePageData()
+
+        const pageTitle = podcast
+          ? translate('Podcasts Screen - ') + podcast.title
+          : translate('PodcastsScreen - ') + translate('no info available')
+        trackPageView('/podcast/' + podcastId, pageTitle)
       }
     )
-    const pageTitle = podcast
-      ? translate('Podcasts Screen - ') + podcast.title
-      : translate('PodcastsScreen - ') + translate('no info available')
-    gaTrackPageView('/podcast/' + podcastId, pageTitle)
   }
 
   async _initializePageData() {
@@ -368,7 +365,7 @@ export class PodcastScreen extends React.Component<Props, State> {
           hideImage={true}
           id={item.id}
           pubDate={item.pubDate}
-          testId={'podcast_screen_episode_downloaded_item_' + index}
+          testID={`${testIDPrefix}_episode_downloaded_item_${index}`}
           title={item.title}
         />
       )
@@ -389,7 +386,7 @@ export class PodcastScreen extends React.Component<Props, State> {
           hideImage={true}
           id={item.id}
           pubDate={item.pubDate}
-          testId={'podcast_screen_episode_item_' + index}
+          testID={`${testIDPrefix}_episode_item_${index}`}
           title={item.title}
         />
       )
@@ -398,14 +395,16 @@ export class PodcastScreen extends React.Component<Props, State> {
         <ClipTableCell
           endTime={item.endTime}
           episodeId={item.episode.id}
-          episodePubDate={readableDate(item.episode.pubDate)}
-          episodeTitle={item.episode.title}
+          {...(item.episode.pubDate ? { episodePubDate: item.episode.pubDate } : {})}
+          {...(item.episode.title ? { episodeTitle: item.episode.title } : {})}
           handleMorePress={() => this._handleMorePress(convertToNowPlayingItem(item, null, podcast))}
           hasZebraStripe={isOdd(index)}
           hideImage={true}
+          showEpisodeInfo={true}
+          showPodcastTitle={false}
           startTime={item.startTime}
-          testId={'podcast_screen_clip_item_' + index}
-          title={item.title}
+          testID={`${testIDPrefix}_clip_item_${index}`}
+          {...(item.title ? { title: item.title } : {})}
         />
       ) : (
         <></>
@@ -413,8 +412,12 @@ export class PodcastScreen extends React.Component<Props, State> {
     }
   }
 
-  _renderHiddenItem = ({ item }, rowMap) => (
-    <SwipeRowBack onPress={() => this._handleHiddenItemPress(item.id, rowMap)} text={translate('Delete')} />
+  _renderHiddenItem = ({ item, index }, rowMap) => (
+    <SwipeRowBack
+      onPress={() => this._handleHiddenItemPress(item.id, rowMap)}
+      testID={`${testIDPrefix}_clip_item_${index}`}
+      text={translate('Delete')}
+    />
   )
 
   _handleHiddenItemPress = async (selectedId, rowMap) => {
@@ -602,7 +605,7 @@ export class PodcastScreen extends React.Component<Props, State> {
       (viewType === PV.Filters._clipsKey && translate('No clips found'))
 
     return (
-      <View style={styles.view} {...testProps('podcast_screen_view')}>
+      <View style={styles.view} {...testProps(`${testIDPrefix}_view`)}>
         <PodcastTableHeader
           autoDownloadOn={autoDownloadOn}
           handleToggleAutoDownload={this._handleToggleAutoDownload}
@@ -615,6 +618,7 @@ export class PodcastScreen extends React.Component<Props, State> {
           podcastImageUrl={podcast && (podcast.shrunkImageUrl || podcast.imageUrl)}
           podcastTitle={podcast && podcast.title}
           showSettings={showSettings}
+          testID={testIDPrefix}
         />
         {!showSettings && (
           <TableSectionSelectors
@@ -624,6 +628,7 @@ export class PodcastScreen extends React.Component<Props, State> {
             screenName='PodcastScreen'
             selectedLeftItemKey={viewType}
             selectedRightItemKey={querySort}
+            testID={testIDPrefix}
           />
         )}
         {showSettings && <TableSectionHeader title={translate('Settings')} />}
@@ -631,12 +636,14 @@ export class PodcastScreen extends React.Component<Props, State> {
           <View style={styles.settingsView}>
             <SwitchWithText
               onValueChange={this._handleToggleLimitDownloads}
+              testID={`${testIDPrefix}_toggle_download_limit`}
               text={limitDownloadedEpisodes ? translate('Download limit on') : translate('Download limit off')}
               value={limitDownloadedEpisodes}
             />
             <NumberSelectorWithText
               handleChangeText={this._handleChangeDownloadLimitText}
               selectedNumber={downloadedEpisodeLimit}
+              testID={`${testIDPrefix}_downloaded_episode_limit_count`}
               text={translate('Download limit max')}
             />
             <Text fontSizeLargestScale={PV.Fonts.largeSizes.sm} style={styles.settingsHelpText}>
@@ -646,6 +653,7 @@ export class PodcastScreen extends React.Component<Props, State> {
             <Button
               onPress={this._handleToggleDeleteDownloadedEpisodesDialog}
               wrapperStyles={styles.button}
+              testID={`${testIDPrefix}_delete_downloaded_episodes`}
               text={translate('Delete Downloaded Episodes')}
             />
           </View>
@@ -681,7 +689,6 @@ export class PodcastScreen extends React.Component<Props, State> {
                 html={
                   podcast.description || (showNoInternetConnectionMessage ? translate('No internet connection') : '')
                 }
-                navigation={navigation}
               />
             )}
             <ActionSheet
@@ -698,6 +705,7 @@ export class PodcastScreen extends React.Component<Props, State> {
                 )
               }
               showModal={showActionSheet}
+              testID={testIDPrefix}
             />
           </View>
         )}
@@ -706,8 +714,16 @@ export class PodcastScreen extends React.Component<Props, State> {
           <Dialog.Description>
             {translate('Are you sure you want to delete all of your downloaded episodes from this podcast')}
           </Dialog.Description>
-          <Dialog.Button label={translate('No')} onPress={this._handleToggleDeleteDownloadedEpisodesDialog} />
-          <Dialog.Button label={translate('Yes')} onPress={this._handleDeleteDownloadedEpisodes} />
+          <Dialog.Button
+            label={translate('No')}
+            onPress={this._handleToggleDeleteDownloadedEpisodesDialog}
+            {...testProps('dialog_delete_downloaded_episodes_no')}
+          />
+          <Dialog.Button
+            label={translate('Yes')}
+            onPress={this._handleDeleteDownloadedEpisodes}
+            {...testProps('dialog_delete_downloaded_episodes_yes')}
+          />
         </Dialog.Container>
       </View>
     )
@@ -715,31 +731,26 @@ export class PodcastScreen extends React.Component<Props, State> {
 
   _queryEpisodes = async (sort: string | null, page: number = 1) => {
     const { podcastId, searchBarText: searchAllFieldsText } = this.state
-    const results = await getEpisodes(
-      {
-        sort,
-        page,
-        podcastId,
-        ...(searchAllFieldsText ? { searchAllFieldsText } : {})
-      },
-      this.global.settings.nsfwMode
-    )
+    const results = await getEpisodes({
+      sort,
+      page,
+      podcastId,
+      ...(searchAllFieldsText ? { searchAllFieldsText } : {})
+    })
 
     return results
   }
 
   _queryClips = async (sort: string | null, page: number = 1) => {
     const { podcastId, searchBarText: searchAllFieldsText } = this.state
-    const results = await getMediaRefs(
-      {
-        sort,
-        page,
-        podcastId,
-        includeEpisode: true,
-        ...(searchAllFieldsText ? { searchAllFieldsText } : {})
-      },
-      this.global.settings.nsfwMode
-    )
+    const results = await getMediaRefs({
+      sort,
+      page,
+      podcastId,
+      includeEpisode: true,
+      ...(searchAllFieldsText ? { searchAllFieldsText } : {}),
+      allowUntitled: true
+    })
     return results
   }
 

@@ -3,8 +3,8 @@ import { NowPlayingItem } from 'podverse-shared'
 import { Platform } from 'react-native'
 import BackgroundTimer from 'react-native-background-timer'
 import { PV } from '../resources'
-import { setNowPlayingItem } from '../state/actions/player'
-import { addOrUpdateHistoryItem, checkIfPlayingFromHistory } from './history'
+import { clearNowPlayingItem, hideMiniPlayer, setNowPlayingItem } from '../state/actions/player'
+import { addOrUpdateHistoryItem, checkIfPlayingFromHistory, updateHistoryItemPlaybackPosition } from './history'
 import {
   getClipHasEnded,
   getNowPlayingItem,
@@ -15,6 +15,7 @@ import {
   playerJumpForward,
   PVTrackPlayer,
   setClipHasEnded,
+  setPlaybackPosition,
   setPlaybackPositionWhenDurationIsAvailable,
   updateUserPlaybackPosition
 } from './player'
@@ -24,6 +25,7 @@ const debouncedSetPlaybackPosition = debounce(setPlaybackPositionWhenDurationIsA
   trailing: false
 })
 
+// NOTE: Disabled the interval handling below because it caused async loading problems...
 // NOTE: Sometimes when there is poor internet connectivity, the addOrUpdateHistoryItem request will fail.
 // This will result in the current item mising from the user's history, and the next time they open
 // the app, it will load with an old history item instead of the last one they were listening to.
@@ -39,18 +41,26 @@ const debouncedSetPlaybackPosition = debounce(setPlaybackPositionWhenDurationIsA
 // This seems to be a limitation that cannot be worked around, aside from a geolocation API based work-around...
 let addOrUpdateHistoryItemSucceeded = false
 let addOrUpdateInterval = null as any
+let intervalCount = 0
 const handleAddOrUpdateRequestInterval = (nowPlayingItem: any) => {
   if (addOrUpdateInterval) clearInterval(addOrUpdateInterval)
   if (!nowPlayingItem) return
 
   const attemptAddOrUpdateHistoryItem = async () => {
-    if (!addOrUpdateHistoryItemSucceeded) {
+    intervalCount = intervalCount + 1
+    if (intervalCount >= 5) {
+      clearInterval(addOrUpdateInterval)
+      addOrUpdateHistoryItemSucceeded = false
+      intervalCount = 0
+    } else if (!addOrUpdateHistoryItemSucceeded) {
       try {
+        addOrUpdateHistoryItemSucceeded = true
         await addOrUpdateHistoryItem(nowPlayingItem)
         await updateUserPlaybackPosition(nowPlayingItem)
-        addOrUpdateHistoryItemSucceeded = true
         clearInterval(addOrUpdateInterval)
+        intervalCount = 0
       } catch (error) {
+        addOrUpdateHistoryItemSucceeded = false
         console.log(error)
       }
     }
@@ -63,6 +73,7 @@ const handleAddOrUpdateRequestInterval = (nowPlayingItem: any) => {
 
 const handleSyncNowPlayingItem = async (trackId: string, currentNowPlayingItem: NowPlayingItem) => {
   if (!currentNowPlayingItem) return
+
   await setNowPlayingItem(currentNowPlayingItem)
 
   if (currentNowPlayingItem && currentNowPlayingItem.clipId) {
@@ -76,6 +87,8 @@ const handleSyncNowPlayingItem = async (trackId: string, currentNowPlayingItem: 
   if (!isPlayingFromHistory && currentNowPlayingItem) {
     handleAddOrUpdateRequestInterval(currentNowPlayingItem)
   }
+
+  PlayerEventEmitter.emit(PV.Events.PLAYER_TRACK_CHANGED)
 }
 
 const syncNowPlayingItemWithTrack = async () => {
@@ -98,12 +111,34 @@ const syncNowPlayingItemWithTrack = async () => {
   setTimeout(sync, 1000)
 }
 
+const handleQueueEnded = async (x) => {
+  setTimeout(async () => {
+    hideMiniPlayer()
+
+    if (x && x.track) {
+      const currentNowPlayingItem = await getNowPlayingItemFromQueueOrHistoryByTrackId(x.track)
+      if (currentNowPlayingItem) {
+        currentNowPlayingItem.userPlaybackPosition = 0
+        await updateHistoryItemPlaybackPosition(currentNowPlayingItem)
+      }
+    }
+
+    // Don't call reset on Android because it triggers the playback-queue-ended event
+    // and will cause an infinite loop
+    if (Platform.OS === 'ios') {
+      PVTrackPlayer.reset()
+    }
+  }, 0)
+}
+
 module.exports = async () => {
   PVTrackPlayer.addEventListener('playback-error', (x) => console.log('playback error', x))
 
+  // NOTE: TrackPlayer.reset will call the playback-queue-ended event on Android!!!
   PVTrackPlayer.addEventListener('playback-queue-ended', async (x) => {
     console.log('playback-queue-ended', x)
-    syncNowPlayingItemWithTrack()
+    await syncNowPlayingItemWithTrack()
+    handleQueueEnded(x)
   })
 
   PVTrackPlayer.addEventListener('playback-state', async (x) => {
@@ -194,17 +229,25 @@ module.exports = async () => {
     PlayerEventEmitter.emit(PV.Events.PLAYER_REMOTE_STOP)
   })
 
-  PVTrackPlayer.addEventListener('remote-duck', (x: any) => {
+  PVTrackPlayer.addEventListener('remote-duck', async (x: any) => {
     const { paused, permanent } = x
 
     // This remote-duck behavior for some Android users was causing playback to resume
     // after receiving any notification, even when the player was paused.
     if (Platform.OS === 'ios') {
-      if (permanent) {
+      // iOS triggers remote-duck with permanent: true when the player app returns to foreground,
+      // but only in case the track was paused before app going to background,
+      // so we need to check if the track is playing before making it stop or pause
+      // as a result of remote-duck.
+      // Thanks to nesinervink and bakkerjoeri for help resolving this issue:
+      // https://github.com/react-native-kit/react-native-track-player/issues/687#issuecomment-660149163
+      const currentState = await PVTrackPlayer.getState()
+      const isPlaying = currentState === PVTrackPlayer.STATE_PLAYING
+      if (permanent && isPlaying) {
         PVTrackPlayer.stop()
       } else if (paused) {
         PVTrackPlayer.pause()
-      } else {
+      } else if (!permanent) {
         PVTrackPlayer.play()
       }
     }

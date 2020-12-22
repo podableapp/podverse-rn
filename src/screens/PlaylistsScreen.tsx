@@ -14,7 +14,7 @@ import { translate } from '../lib/i18n'
 import { alertIfNoNetworkConnection, hasValidNetworkConnection } from '../lib/network'
 import { isOdd, testProps } from '../lib/utility'
 import { PV } from '../resources'
-import { gaTrackPageView } from '../services/googleAnalytics'
+import { trackPageView } from '../services/tracking'
 import { deletePlaylist, getPlaylists, toggleSubscribeToPlaylist } from '../state/actions/playlist'
 import { getLoggedInUserPlaylists } from '../state/actions/user'
 
@@ -29,6 +29,8 @@ type State = {
   queryFrom: string | null
   showNoInternetConnectionMessage?: boolean
 }
+
+const testIDPrefix = 'playlists_screen'
 
 export class PlaylistsScreen extends React.Component<Props, State> {
   static navigationOptions = () => {
@@ -63,7 +65,7 @@ export class PlaylistsScreen extends React.Component<Props, State> {
       navigation.navigate(PV.RouteNames.MorePlaylistScreen, { playlistId })
     }
 
-    gaTrackPageView('/playlists', 'Playlists Screen')
+    trackPageView('/playlists', 'Playlists Screen')
   }
 
   selectLeftItem = async (selectedKey: string) => {
@@ -103,16 +105,22 @@ export class PlaylistsScreen extends React.Component<Props, State> {
             navigationTitle: queryFrom === PV.Filters._myPlaylistsKey ? translate('My Playlist') : translate('Playlist')
           })
         }
+        testID={`${testIDPrefix}_playlist_item_${index}`}
         title={item.title}
       />
     )
   }
 
-  _renderHiddenItem = ({ item }, rowMap) => {
+  _renderHiddenItem = ({ item, index }, rowMap) => {
     const { isRemoving, queryFrom } = this.state
     const text = queryFrom === PV.Filters._myPlaylistsKey ? translate('Delete') : translate('Unsubscribe')
     return (
-      <SwipeRowBack isLoading={isRemoving} onPress={() => this._handleHiddenItemPress(item.id, rowMap)} text={text} />
+      <SwipeRowBack
+        isLoading={isRemoving}
+        onPress={() => this._handleHiddenItemPress(item.id, rowMap)}
+        testID={`${testIDPrefix}_playlist_item_${index}`}
+        text={text}
+      />
     )
   }
 
@@ -158,6 +166,7 @@ export class PlaylistsScreen extends React.Component<Props, State> {
             handleSelectLeftItem={this.selectLeftItem}
             screenName='PlaylistsScreen'
             selectedLeftItemKey={queryFrom}
+            testID={testIDPrefix}
           />
           {isLoading && <ActivityIndicator />}
           {!isLoading && this.global.session.isLoggedIn && (
@@ -177,9 +186,10 @@ export class PlaylistsScreen extends React.Component<Props, State> {
           )}
           {!isLoading && !this.global.session.isLoggedIn && (
             <MessageWithAction
+              message={translate('Login to view your playlists')}
+              testID={testIDPrefix}
               topActionHandler={this._onPressLogin}
               topActionText={translate('Login')}
-              message={translate('Login to view your playlists')}
             />
           )}
         </View>
