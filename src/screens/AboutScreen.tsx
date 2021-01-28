@@ -13,6 +13,8 @@ type State = {
   uri: string
 }
 
+const testIDPrefix = 'about_screen'
+
 export class AboutScreen extends React.Component<Props, State> {
   static navigationOptions = ({ navigation }) => {
     return {
@@ -22,7 +24,7 @@ export class AboutScreen extends React.Component<Props, State> {
 
   render() {
     return (
-      <View style={styles.wrapper}>
+      <View style={styles.wrapper} testID={`${testIDPrefix}_view`}>
         <WebView source={{ uri: PV.URLs.officialWeb.about }} />
       </View>
     )
