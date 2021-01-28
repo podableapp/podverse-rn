@@ -20,7 +20,7 @@ import { isOdd, safelyUnwrapNestedVariable, testProps } from '../lib/utility'
 import { PV } from '../resources'
 import { getPodcasts } from '../services/podcast'
 import { trackPageView } from '../services/tracking'
-import { toggleSubscribeToPodcast } from '../state/actions/podcast'
+import { addAddByRSSPodcast } from '../state/actions/parser'
 import { core } from '../styles'
 
 const { _aboutPodcastKey, _episodesKey, _clipsKey } = PV.Filters
@@ -187,7 +187,19 @@ export class SearchScreen extends React.Component<Props, State> {
       {
         key: 'toggleSubscribe',
         text: isSubscribed ? translate('Unsubscribe') : translate('Subscribe'),
-        onPress: () => selectedPodcast && this._toggleSubscribeToPodcast(selectedPodcast.id)
+        onPress: () => {
+          /*
+            PODABLE OVERRIDE
+            Subscribe to podcasts with the addByRSSPodcastFeedUrl instead of the podcastId
+            so they are always handled as locally parsed data instead of server API data.
+          */
+          const url =
+            selectedPodcast &&
+            selectedPodcast.feedUrls &&
+            selectedPodcast.feedUrls[0] &&
+            selectedPodcast.feedUrls[0].url
+          return selectedPodcast && this._toggleSubscribeToPodcast(url)
+        }
       },
       {
         key: 'episodes',
@@ -207,12 +219,12 @@ export class SearchScreen extends React.Component<Props, State> {
     ]
   }
 
-  _toggleSubscribeToPodcast = async (id: string) => {
+  _toggleSubscribeToPodcast = async (feedUrl: string) => {
     const wasAlerted = await alertIfNoNetworkConnection(translate('subscribe to this podcast'))
     if (wasAlerted) return
 
     try {
-      await toggleSubscribeToPodcast(id)
+      await addAddByRSSPodcast(feedUrl)
     } catch (error) {
       Alert.alert(PV.Alerts.SOMETHING_WENT_WRONG.title, PV.Alerts.SOMETHING_WENT_WRONG.message, PV.Alerts.BUTTONS.OK)
     }
