@@ -96,7 +96,7 @@ const runTests = async (customCapabilities) => {
     await elementByIdAndClickAndTest('tab_more_screen', 'more_screen_view')
 
     await elementByIdAndClickAndTest('nav_search_icon', 'search_screen_view')
-    await elementByIdAndClickAndTest('undefined_nav_dismiss_icon', 'more_screen_view')
+    await elementByIdAndClickAndTest('search_screen_nav_dismiss_icon', 'more_screen_view')
 
     await elementByIdAndClickAndTest('more_screen_downloads_cell', 'downloads_screen_view', goBack)
 
