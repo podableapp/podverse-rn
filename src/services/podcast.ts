@@ -53,7 +53,10 @@ export const getSubscribedPodcasts = async (subscribedPodcastIds: [string]) => {
 
   if (subscribedPodcastIds.length < 1 && addByRSSPodcasts.length < 1) return [[], 0]
 
+  const isConnected = await hasValidNetworkConnection()
+
   if (subscribedPodcastIds.length < 1 && addByRSSPodcasts.length > 0) {
+    if (isConnected) await parseAllAddByRSSPodcasts()
     const combinedPodcasts = await combineWithAddByRSSPodcasts()
     return [combinedPodcasts, combinedPodcasts.length]
   }
@@ -63,7 +66,6 @@ export const getSubscribedPodcasts = async (subscribedPodcastIds: [string]) => {
     sort: 'alphabetical',
     maxResults: true
   }
-  const isConnected = await hasValidNetworkConnection()
 
   if (isConnected) {
     try {
@@ -72,7 +74,7 @@ export const getSubscribedPodcasts = async (subscribedPodcastIds: [string]) => {
 
       const autoDownloadSettingsString = await AsyncStorage.getItem(PV.Keys.AUTO_DOWNLOAD_SETTINGS)
       const autoDownloadSettings = autoDownloadSettingsString ? JSON.parse(autoDownloadSettingsString) : {}
-      const data = await getPodcasts(query, true)
+      const data = await getPodcasts(query)
       const subscribedPodcasts = data[0] || []
       const podcastIds = Object.keys(autoDownloadSettings).filter((key: string) => autoDownloadSettings[key] === true)
 
