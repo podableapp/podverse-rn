@@ -1,5 +1,7 @@
 import { setGlobal } from 'reactn'
+import { PV } from '../../resources'
 import { checkIfLoggedIn } from '../../services/auth'
+import PVEventEmitter from '../../services/eventEmitter'
 import {
   addAddByRSSPodcastFeedUrlOnServer,
   getAddByRSSPodcastFeedUrlsLocally,
@@ -23,7 +25,9 @@ export const addAddByRSSPodcast = async (feedUrl: string) => {
   if (!feedUrl) return
 
   try {
-    await handleAddOrRemoveByRSSPodcast(feedUrl, true)
+    const shouldAdd = true
+    await handleAddOrRemoveByRSSPodcast(feedUrl, shouldAdd)
+    PVEventEmitter.emit(PV.Events.PODCAST_SUBSCRIBE_TOGGLED)
   } catch (error) {
     console.log('addAddByRSSPodcast add', error)
     throw error
@@ -34,7 +38,9 @@ export const removeAddByRSSPodcast = async (feedUrl: string) => {
   if (!feedUrl) return
 
   try {
-    await handleAddOrRemoveByRSSPodcast(feedUrl, false)
+    const shouldAdd = false
+    await handleAddOrRemoveByRSSPodcast(feedUrl, shouldAdd)
+    PVEventEmitter.emit(PV.Events.PODCAST_SUBSCRIBE_TOGGLED)
   } catch (error) {
     console.log('addAddByRSSPodcast remove', error)
     throw error

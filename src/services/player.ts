@@ -7,6 +7,7 @@ import { BackgroundDownloader } from '../lib/downloader'
 import { checkIfIdMatchesClipIdOrEpisodeId, convertURLToSecureProtocol, getExtensionFromUrl } from '../lib/utility'
 import { PV } from '../resources'
 import { checkIfShouldUseServerData } from './auth'
+import PVEventEmitter from './eventEmitter'
 import {
   addOrUpdateHistoryItem,
   getHistoryItem,
@@ -14,7 +15,6 @@ import {
   getHistoryItemsLocally,
   updateHistoryItemPlaybackPosition
 } from './history'
-import PlayerEventEmitter from './playerEventEmitter'
 import {
   addQueueItemLast,
   addQueueItemNext,
@@ -94,7 +94,7 @@ export const handleResumeAfterClipHasEnded = async () => {
   const nowPlayingItemEpisode = convertNowPlayingItemClipToNowPlayingItemEpisode(nowPlayingItem)
   await setNowPlayingItem(nowPlayingItemEpisode)
   addOrUpdateHistoryItem(nowPlayingItemEpisode)
-  PlayerEventEmitter.emit(PV.Events.PLAYER_RESUME_AFTER_CLIP_HAS_ENDED)
+  PVEventEmitter.emit(PV.Events.PLAYER_RESUME_AFTER_CLIP_HAS_ENDED)
 }
 
 export const playerJumpBackward = async (seconds: number) => {
@@ -303,7 +303,7 @@ export const loadItemAndPlayTrack = async (
   }
 
   if (lastPlayingItem && lastPlayingItem.episodeId && lastPlayingItem.episodeId !== item.episodeId) {
-    PlayerEventEmitter.emit(PV.Events.PLAYER_NEW_EPISODE_LOADED)
+    PVEventEmitter.emit(PV.Events.PLAYER_NEW_EPISODE_LOADED)
   }
 }
 
