@@ -21,7 +21,7 @@ import { PV } from '../resources'
 import { getPodcasts } from '../services/podcast'
 import { trackPageView } from '../services/tracking'
 import { toggleAddByRSSPodcastFeedUrl } from '../state/actions/parser'
-import { checkIfSubscribedPodcast } from '../state/actions/podcast'
+import { checkIfSubscribedToPodcast } from '../state/actions/podcast'
 import { core } from '../styles'
 
 const { _aboutPodcastKey, _episodesKey, _clipsKey } = PV.Filters
@@ -185,7 +185,7 @@ export class SearchScreen extends React.Component<Props, State> {
     const selectedPodcastId = selectedPodcast?.id
     const selectedFeedUrl = selectedPodcast?.feedUrls[0]?.url
     const isSubscribed =
-      selectedPodcast && checkIfSubscribedPodcast(subscribedPodcastIds, selectedPodcastId, selectedFeedUrl)
+      selectedPodcast && checkIfSubscribedToPodcast(subscribedPodcastIds, selectedPodcastId, selectedFeedUrl)
 
     return [
       {

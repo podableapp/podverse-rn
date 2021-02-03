@@ -9,7 +9,7 @@ import { safelyUnwrapNestedVariable } from '../lib/utility'
 import { PV } from '../resources'
 import { getAddByRSSPodcastLocally } from '../services/parser'
 import { toggleAddByRSSPodcastFeedUrl } from '../state/actions/parser'
-import { checkIfSubscribedPodcast, toggleSubscribeToPodcast } from '../state/actions/podcast'
+import { checkIfSubscribedToPodcast, toggleSubscribeToPodcast } from '../state/actions/podcast'
 import { actionSheetStyles, sliderStyles } from '../styles'
 import { ActionSheet, Icon, Text } from './'
 
@@ -118,7 +118,7 @@ export class PlayerMoreActionSheet extends React.Component<Props, State> {
     const { episode, nowPlayingItem } = player
     const podcast = (episode && episode.podcast) || {}
     const subscribedPodcastIds = safelyUnwrapNestedVariable(() => session.userInfo.subscribedPodcastIds, [])
-    const isSubscribed = checkIfSubscribedPodcast(
+    const isSubscribed = checkIfSubscribedToPodcast(
       subscribedPodcastIds,
       nowPlayingItem.podcastId,
       nowPlayingItem.addByRSSPodcastFeedUrl

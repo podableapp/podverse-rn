@@ -197,8 +197,6 @@ export const toggleSubscribeToPodcast = async (id: string) => {
     await setDownloadedEpisodeLimit(id)
   }
 
-  PVEventEmitter.emit(PV.Events.PODCAST_SUBSCRIBE_TOGGLED)
-
   return items
 }
 
