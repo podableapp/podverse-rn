@@ -1,5 +1,7 @@
 import { getGlobal, setGlobal } from 'reactn'
 import { safelyUnwrapNestedVariable } from '../../lib/utility'
+import { PV } from '../../resources'
+import PVEventEmitter from '../../services/eventEmitter'
 import {
   getAddByRSSPodcastsLocally,
   removeAddByRSSPodcast as removeAddByRSSPodcastService
@@ -61,4 +63,23 @@ export const removeAddByRSSPodcast = async (feedUrl: string) => {
   const globalState = getGlobal()
   const subscribedPodcastIds = safelyUnwrapNestedVariable(() => globalState.session.userInfo.subscribedPodcastIds, [])
   await getSubscribedPodcasts(subscribedPodcastIds)
+  PVEventEmitter.emit(PV.Events.PODCAST_SUBSCRIBE_TOGGLED)
+}
+
+export const checkIfSubscribedPodcast = (
+  subscribedPodcastIds: string[],
+  podcastId?: string,
+  addByRSSPodcastFeedUrl?: string
+) => {
+  const globalState = getGlobal()
+  let isSubscribed = subscribedPodcastIds.some((x: string) => podcastId && podcastId === x)
+
+  if (!isSubscribed && addByRSSPodcastFeedUrl) {
+    const subscribedPodcasts = safelyUnwrapNestedVariable(() => globalState.subscribedPodcasts, [])
+    isSubscribed = subscribedPodcasts.some(
+      (x: any) => x.addByRSSPodcastFeedUrl && x.addByRSSPodcastFeedUrl === addByRSSPodcastFeedUrl
+    )
+  }
+
+  return isSubscribed
 }

@@ -20,7 +20,8 @@ import { isOdd, safelyUnwrapNestedVariable, testProps } from '../lib/utility'
 import { PV } from '../resources'
 import { getPodcasts } from '../services/podcast'
 import { trackPageView } from '../services/tracking'
-import { addAddByRSSPodcast } from '../state/actions/parser'
+import { toggleAddByRSSPodcastFeedUrl } from '../state/actions/parser'
+import { checkIfSubscribedPodcast } from '../state/actions/podcast'
 import { core } from '../styles'
 
 const { _aboutPodcastKey, _episodesKey, _clipsKey } = PV.Filters
@@ -181,7 +182,10 @@ export class SearchScreen extends React.Component<Props, State> {
   _moreButtons = (): any[] => {
     const { selectedPodcast } = this.state
     const subscribedPodcastIds = safelyUnwrapNestedVariable(() => this.global.session.userInfo.subscribedPodcastIds, [])
-    const isSubscribed = selectedPodcast && subscribedPodcastIds.some((id: any) => id === selectedPodcast.id)
+    const selectedPodcastId = selectedPodcast?.id
+    const selectedFeedUrl = selectedPodcast?.feedUrls[0]?.url
+    const isSubscribed =
+      selectedPodcast && checkIfSubscribedPodcast(subscribedPodcastIds, selectedPodcastId, selectedFeedUrl)
 
     return [
       {
@@ -193,12 +197,8 @@ export class SearchScreen extends React.Component<Props, State> {
             Subscribe to podcasts with the addByRSSPodcastFeedUrl instead of the podcastId
             so they are always handled as locally parsed data instead of server API data.
           */
-          const url =
-            selectedPodcast &&
-            selectedPodcast.feedUrls &&
-            selectedPodcast.feedUrls[0] &&
-            selectedPodcast.feedUrls[0].url
-          return selectedPodcast && this._toggleSubscribeToPodcast(url)
+          const url = selectedPodcast?.feedUrls[0]?.url
+          return url && this._toggleSubscribeToPodcast(url)
         }
       },
       {
@@ -224,7 +224,7 @@ export class SearchScreen extends React.Component<Props, State> {
     if (wasAlerted) return
 
     try {
-      await addAddByRSSPodcast(feedUrl)
+      await toggleAddByRSSPodcastFeedUrl(feedUrl)
     } catch (error) {
       Alert.alert(PV.Alerts.SOMETHING_WENT_WRONG.title, PV.Alerts.SOMETHING_WENT_WRONG.message, PV.Alerts.BUTTONS.OK)
     }

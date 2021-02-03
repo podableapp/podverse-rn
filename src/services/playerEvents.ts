@@ -4,6 +4,7 @@ import { Platform } from 'react-native'
 import BackgroundTimer from 'react-native-background-timer'
 import { PV } from '../resources'
 import { clearNowPlayingItem, hideMiniPlayer, setNowPlayingItem } from '../state/actions/player'
+import PVEventEmitter from './eventEmitter'
 import { addOrUpdateHistoryItem, checkIfPlayingFromHistory, updateHistoryItemPlaybackPosition } from './history'
 import {
   getClipHasEnded,
@@ -19,7 +20,6 @@ import {
   setPlaybackPositionWhenDurationIsAvailable,
   updateUserPlaybackPosition
 } from './player'
-import PlayerEventEmitter from './playerEventEmitter'
 const debouncedSetPlaybackPosition = debounce(setPlaybackPositionWhenDurationIsAvailable, 1000, {
   leading: true,
   trailing: false
@@ -77,7 +77,7 @@ const handleSyncNowPlayingItem = async (trackId: string, currentNowPlayingItem: 
   await setNowPlayingItem(currentNowPlayingItem)
 
   if (currentNowPlayingItem && currentNowPlayingItem.clipId) {
-    PlayerEventEmitter.emit(PV.Events.PLAYER_CLIP_LOADED)
+    PVEventEmitter.emit(PV.Events.PLAYER_CLIP_LOADED)
   }
   if (!currentNowPlayingItem.clipId && currentNowPlayingItem.userPlaybackPosition) {
     debouncedSetPlaybackPosition(currentNowPlayingItem.userPlaybackPosition, trackId)
@@ -88,7 +88,7 @@ const handleSyncNowPlayingItem = async (trackId: string, currentNowPlayingItem: 
     handleAddOrUpdateRequestInterval(currentNowPlayingItem)
   }
 
-  PlayerEventEmitter.emit(PV.Events.PLAYER_TRACK_CHANGED)
+  PVEventEmitter.emit(PV.Events.PLAYER_TRACK_CHANGED)
 }
 
 const syncNowPlayingItemWithTrack = async () => {
@@ -144,7 +144,7 @@ module.exports = async () => {
   PVTrackPlayer.addEventListener('playback-state', async (x) => {
     console.log('playback-state', x)
 
-    PlayerEventEmitter.emit(PV.Events.PLAYER_STATE_CHANGED)
+    PVEventEmitter.emit(PV.Events.PLAYER_STATE_CHANGED)
 
     const clipHasEnded = await getClipHasEnded()
     const nowPlayingItem = await getNowPlayingItem()
@@ -199,7 +199,7 @@ module.exports = async () => {
   PVTrackPlayer.addEventListener('playback-error', (x: any) => {
     console.log('playback-error', x)
     // TODO: post error to our logs!
-    PlayerEventEmitter.emit(PV.Events.PLAYER_PLAYBACK_ERROR)
+    PVEventEmitter.emit(PV.Events.PLAYER_PLAYBACK_ERROR)
   })
 
   PVTrackPlayer.addEventListener('remote-jump-backward', () => playerJumpBackward(PV.Player.jumpSeconds))
@@ -208,13 +208,13 @@ module.exports = async () => {
 
   PVTrackPlayer.addEventListener('remote-pause', async () => {
     PVTrackPlayer.pause()
-    PlayerEventEmitter.emit(PV.Events.PLAYER_REMOTE_PAUSE)
+    PVEventEmitter.emit(PV.Events.PLAYER_REMOTE_PAUSE)
     await updateUserPlaybackPosition()
   })
 
   PVTrackPlayer.addEventListener('remote-play', async () => {
     PVTrackPlayer.play()
-    PlayerEventEmitter.emit(PV.Events.PLAYER_REMOTE_PLAY)
+    PVEventEmitter.emit(PV.Events.PLAYER_REMOTE_PLAY)
     await updateUserPlaybackPosition()
   })
 
@@ -226,7 +226,7 @@ module.exports = async () => {
 
   PVTrackPlayer.addEventListener('remote-stop', () => {
     PVTrackPlayer.pause()
-    PlayerEventEmitter.emit(PV.Events.PLAYER_REMOTE_STOP)
+    PVEventEmitter.emit(PV.Events.PLAYER_REMOTE_STOP)
   })
 
   PVTrackPlayer.addEventListener('remote-duck', async (x: any) => {
@@ -300,4 +300,4 @@ const handlePlayerClipLoaded = async () => {
 
 const debouncedHandlePlayerClipLoaded = debounce(handlePlayerClipLoaded, 1000)
 
-PlayerEventEmitter.on(PV.Events.PLAYER_CLIP_LOADED, debouncedHandlePlayerClipLoaded)
+PVEventEmitter.on(PV.Events.PLAYER_CLIP_LOADED, debouncedHandlePlayerClipLoaded)

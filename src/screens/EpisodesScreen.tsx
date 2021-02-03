@@ -21,6 +21,7 @@ import { hasValidNetworkConnection } from '../lib/network'
 import { getUniqueArrayByKey, isOdd, setCategoryQueryProperty, testProps } from '../lib/utility'
 import { PV } from '../resources'
 import { getEpisodes } from '../services/episode'
+import PVEventEmitter from '../services/eventEmitter'
 import { combineEpisodesWithAddByRSSEpisodesLocally, hasAddByRSSEpisodesLocally } from '../services/parser'
 import { trackPageView } from '../services/tracking'
 import { removeDownloadedPodcastEpisode } from '../state/actions/downloads'
@@ -75,8 +76,7 @@ export class EpisodesScreen extends React.Component<Props, State> {
           ? PV.Filters._subscribedKey
           : Config.DEFAULT_QUERY_EPISODES_SCREEN,
       queryPage: 1,
-      querySort:
-        subscribedPodcasts && subscribedPodcasts.length > 0 ? PV.Filters._mostRecentKey : PV.Filters._topPastWeek,
+      querySort: PV.Filters._mostRecentKey,
       searchBarText: '',
       selectedCategory: PV.Filters._allCategoriesKey,
       selectedSubCategory: PV.Filters._allCategoriesKey,
@@ -99,7 +99,19 @@ export class EpisodesScreen extends React.Component<Props, State> {
         this.setState(newState)
       }
     )
+
+    PVEventEmitter.on(PV.Events.PODCAST_SUBSCRIBE_TOGGLED, this._handleToggleSubscribeEvent)
+
     trackPageView('/episodes', 'Episodes Screen')
+  }
+
+  async componentWillUnmount() {
+    PVEventEmitter.removeListener(PV.Events.PODCAST_SUBSCRIBE_TOGGLED, this._handleToggleSubscribeEvent)
+  }
+
+  _handleToggleSubscribeEvent = () => {
+    const { queryFrom } = this.state
+    if (queryFrom) this.selectLeftItem(queryFrom)
   }
 
   selectLeftItem = async (selectedKey: string) => {

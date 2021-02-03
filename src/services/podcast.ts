@@ -4,6 +4,7 @@ import { getDownloadedPodcast, removeDownloadedPodcast } from '../lib/downloaded
 import { downloadEpisode } from '../lib/downloader'
 import { hasValidNetworkConnection } from '../lib/network'
 import { PV } from '../resources'
+import PVEventEmitter from '../services/eventEmitter'
 import { checkIfLoggedIn, getBearerToken } from './auth'
 import { getAutoDownloadEpisodes, removeAutoDownloadSetting } from './autoDownloads'
 import { getAddByRSSPodcastsLocally, parseAllAddByRSSPodcasts, removeAddByRSSPodcast } from './parser'
@@ -195,6 +196,8 @@ export const toggleSubscribeToPodcast = async (id: string) => {
     await removeDownloadedPodcast(id)
     await setDownloadedEpisodeLimit(id)
   }
+
+  PVEventEmitter.emit(PV.Events.PODCAST_SUBSCRIBE_TOGGLED)
 
   return items
 }
