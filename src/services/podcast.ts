@@ -4,6 +4,7 @@ import { getDownloadedPodcast, removeDownloadedPodcast } from '../lib/downloaded
 import { downloadEpisode } from '../lib/downloader'
 import { hasValidNetworkConnection } from '../lib/network'
 import { PV } from '../resources'
+import PVEventEmitter from '../services/eventEmitter'
 import { checkIfLoggedIn, getBearerToken } from './auth'
 import { getAutoDownloadEpisodes, removeAutoDownloadSetting } from './autoDownloads'
 import { getAddByRSSPodcastsLocally, parseAllAddByRSSPodcasts, removeAddByRSSPodcast } from './parser'
@@ -48,12 +49,23 @@ export const getPodcasts = async (query: any = {}) => {
   return response && response.data
 }
 
+const setSubscribedPodcasts = async (subscribedPodcasts: any[]) => {
+  await AsyncStorage.setItem(PV.Keys.SUBSCRIBED_PODCASTS_LAST_REFRESHED, new Date().toISOString())
+  if (Array.isArray(subscribedPodcasts)) {
+    await AsyncStorage.setItem(PV.Keys.SUBSCRIBED_PODCASTS, JSON.stringify(subscribedPodcasts))
+  }
+}
+
 export const getSubscribedPodcasts = async (subscribedPodcastIds: [string]) => {
   const addByRSSPodcasts = await getAddByRSSPodcastsLocally()
 
   if (subscribedPodcastIds.length < 1 && addByRSSPodcasts.length < 1) return [[], 0]
 
+  const isConnected = await hasValidNetworkConnection()
+
   if (subscribedPodcastIds.length < 1 && addByRSSPodcasts.length > 0) {
+    if (isConnected) await parseAllAddByRSSPodcasts()
+    await setSubscribedPodcasts([])
     const combinedPodcasts = await combineWithAddByRSSPodcasts()
     return [combinedPodcasts, combinedPodcasts.length]
   }
@@ -63,7 +75,6 @@ export const getSubscribedPodcasts = async (subscribedPodcastIds: [string]) => {
     sort: 'alphabetical',
     maxResults: true
   }
-  const isConnected = await hasValidNetworkConnection()
 
   if (isConnected) {
     try {
@@ -72,7 +83,7 @@ export const getSubscribedPodcasts = async (subscribedPodcastIds: [string]) => {
 
       const autoDownloadSettingsString = await AsyncStorage.getItem(PV.Keys.AUTO_DOWNLOAD_SETTINGS)
       const autoDownloadSettings = autoDownloadSettingsString ? JSON.parse(autoDownloadSettingsString) : {}
-      const data = await getPodcasts(query, true)
+      const data = await getPodcasts(query)
       const subscribedPodcasts = data[0] || []
       const podcastIds = Object.keys(autoDownloadSettings).filter((key: string) => autoDownloadSettings[key] === true)
 
@@ -91,10 +102,7 @@ export const getSubscribedPodcasts = async (subscribedPodcastIds: [string]) => {
         }
       }, 3000)
 
-      await AsyncStorage.setItem(PV.Keys.SUBSCRIBED_PODCASTS_LAST_REFRESHED, new Date().toISOString())
-      if (Array.isArray(subscribedPodcasts)) {
-        await AsyncStorage.setItem(PV.Keys.SUBSCRIBED_PODCASTS, JSON.stringify(subscribedPodcasts))
-      }
+      await setSubscribedPodcasts(subscribedPodcasts)
 
       await parseAllAddByRSSPodcasts()
 

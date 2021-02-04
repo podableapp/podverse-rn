@@ -17,7 +17,7 @@ addByRSSPodcast: object {
 */
 
 export const hasAddByRSSEpisodesLocally = async () => {
-  const results = await getAddByRSSEpisodesLocally(new Date(), new Date(0))
+  const results = await getAddByRSSEpisodesLocally()
   return results.length > 0
 }
 
@@ -44,7 +44,7 @@ export const combineEpisodesWithAddByRSSEpisodesLocally = async (results: any[])
   mostRecentDate = mostRecentDate ? mostRecentDate : new Date().toString()
   oldestDate = oldestDate ? oldestDate : new Date(0).toString()
 
-  const addByRSSEpisodes = await getAddByRSSEpisodesLocally(new Date(mostRecentDate), new Date(oldestDate))
+  const addByRSSEpisodes = await getAddByRSSEpisodesLocally()
 
   const sortedResults = [...results[0], ...addByRSSEpisodes].sort((a: any, b: any) => {
     const dateA = new Date(a.pubDate) as any
@@ -57,7 +57,20 @@ export const combineEpisodesWithAddByRSSEpisodesLocally = async (results: any[])
   return [sortedResults, newCount]
 }
 
-export const getAddByRSSEpisodesLocally = async (mostRecentDate: Date, oldestDate: Date) => {
+export const getAddByRSSEpisodesLocally = async () => {
+  const addByRSSPodcasts = await getAddByRSSPodcastsLocally()
+  const combinedEpisodes = [] as any[]
+
+  for (const addByRSSPodcast of addByRSSPodcasts) {
+    for (const episode of addByRSSPodcast.episodes) {
+      episode.podcast = addByRSSPodcast
+      combinedEpisodes.push(episode)
+    }
+  }
+  return combinedEpisodes
+}
+
+export const getAddByRSSEpisodesLocallyByDateRange = async (mostRecentDate: Date, oldestDate: Date) => {
   const addByRSSPodcasts = await getAddByRSSPodcastsLocally()
   const combinedEpisodes = [] as any[]
 
@@ -177,13 +190,6 @@ export const parseAddByRSSPodcast = async (feedUrl: string) => {
   podcast.isExplicit = meta.explicit
   podcast.language = meta.language
 
-  if (parsedEpisodes && parsedEpisodes.length > 0) {
-    const lastEpisodePubDate = new Date(parsedEpisodes[0].pubDate)
-    podcast.lastEpisodePubDate = isValidDate(lastEpisodePubDate) ? lastEpisodePubDate : new Date()
-    podcast.lastEpisodePubDate = parsedEpisodes[0].published || new Date()
-    podcast.lastEpisodeTitle = parsedEpisodes[0].title && parsedEpisodes[0].title.trim()
-  }
-
   podcast.linkUrl = meta.link
   podcast.sortableTitle = convertToSortableTitle(title)
   podcast.title = title
@@ -192,6 +198,15 @@ export const parseAddByRSSPodcast = async (feedUrl: string) => {
 
   const episodes = [] as any[]
   if (parsedEpisodes && Array.isArray(parsedEpisodes)) {
+    parsedEpisodes.sort((a, b) => (new Date(b.pubDate) as any) - (new Date(a.pubDate) as any))
+
+    if (parsedEpisodes[0]) {
+      const lastEpisodePubDate = new Date(parsedEpisodes[0].pubDate)
+      podcast.lastEpisodePubDate = isValidDate(lastEpisodePubDate) && lastEpisodePubDate
+      podcast.lastEpisodePubDate = podcast.lastEpisodePubDate || parsedEpisodes[0].published || new Date()
+      podcast.lastEpisodeTitle = parsedEpisodes[0].title && parsedEpisodes[0].title.trim()
+    }
+
     for (const parsedEpisode of parsedEpisodes) {
       const episode = {} as any
       const enclosure = parsedEpisode.enclosure
